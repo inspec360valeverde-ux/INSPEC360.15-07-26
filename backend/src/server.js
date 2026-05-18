@@ -14,10 +14,11 @@ import serviceOrdersRouter from './routes/serviceOrders.js';
 import inspectionsRouter from './routes/inspections.js';
 import executionsRouter from './routes/executions.js';
 import photosRouter from './routes/photos.js';
+import stateRouter from './routes/state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MIDDLEWARE
@@ -41,6 +42,7 @@ app.use('/api/service-orders', serviceOrdersRouter);
 app.use('/api/inspections', inspectionsRouter);
 app.use('/api/executions', executionsRouter);
 app.use('/api/photos', photosRouter);
+app.use('/api/state', stateRouter);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HEALTH CHECK

@@ -317,6 +317,39 @@ export function getStore(): AppData {
 
 export function saveStore(data: AppData): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Fire-and-forget sync to backend for multi-user persistence
+  fetch('/api/state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ state: data }),
+  }).catch(() => { /* backend unavailable — localStorage is the fallback */ });
+}
+
+/**
+ * Loads the latest shared state from the backend and writes it to localStorage.
+ * Must be called once on app startup before rendering any UI.
+ * Falls back to localStorage silently if the backend is unavailable.
+ */
+export async function loadFromBackend(): Promise<void> {
+  try {
+    const res = await fetch('/api/state', { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return;
+    const { state, found } = await res.json();
+    if (found && state) {
+      const migrated: AppData = {
+        ...getInitialData(),
+        ...state,
+        structures: ((state.structures ?? []) as Structure[]).map((s) => ({
+          ...s,
+          coordX: s.coordX ?? s.lng ?? 0,
+          coordY: s.coordY ?? s.lat ?? 0,
+        })),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+    }
+  } catch {
+    // Network error or timeout — continue with localStorage
+  }
 }
 
 export function getInitialData(): AppData {

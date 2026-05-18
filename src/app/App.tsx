@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginScreen } from './components/LoginScreen';
 import { TecnicoApp } from './components/TecnicoApp';
 import { SupervisorApp } from './components/SupervisorApp';
 import { SuperAdmApp } from './components/SuperAdmApp';
+import { loadFromBackend } from './data/store';
 
 export type UserRole = 'tecnico' | 'supervisor' | 'superadm' | null;
 
@@ -16,27 +17,44 @@ export interface User {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [backendReady, setBackendReady] = useState(false);
 
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-  };
+  useEffect(() => {
+    loadFromBackend().finally(() => setBackendReady(true));
+  }, []);
 
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  if (!user) {
-    return <LoginScreen onLogin={handleLogin} />;
+  if (!backendReady) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', alignItems: 'center',
+        height: '100vh', background: '#193A2A', gap: '16px',
+      }}>
+        <div style={{ color: '#AA8933', fontSize: '24px', fontWeight: 700, fontFamily: 'sans-serif' }}>
+          INSPEC360
+        </div>
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '50%',
+          border: '3px solid #AA893355', borderTopColor: '#AA8933',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <div style={{ color: '#ffffff88', fontSize: '13px', fontFamily: 'sans-serif' }}>
+          Sincronizando dados...
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
+  const handleLogin = (userData: User) => setUser(userData);
+  const handleLogout = () => setUser(null);
+
+  if (!user) return <LoginScreen onLogin={handleLogin} />;
+
   switch (user.role) {
-    case 'tecnico':
-      return <TecnicoApp user={user} onLogout={handleLogout} />;
-    case 'supervisor':
-      return <SupervisorApp user={user} onLogout={handleLogout} />;
-    case 'superadm':
-      return <SuperAdmApp user={user} onLogout={handleLogout} />;
-    default:
-      return <LoginScreen onLogin={handleLogin} />;
+    case 'tecnico':   return <TecnicoApp user={user} onLogout={handleLogout} />;
+    case 'supervisor': return <SupervisorApp user={user} onLogout={handleLogout} />;
+    case 'superadm':  return <SuperAdmApp user={user} onLogout={handleLogout} />;
+    default:          return <LoginScreen onLogin={handleLogin} />;
   }
 }

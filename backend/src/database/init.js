@@ -186,20 +186,11 @@ export async function initializeDatabase() {
     )
   `);
 
-  // Adicionar colunas de GPS se não existirem (para banco existente)
-  runSQL(`
-    PRAGMA table_info(inspectionPhotos);
-  `).then(columns => {
-    const hasLatitude = columns.some(col => col.name === 'latitude');
-    if (!hasLatitude) {
-      runSQL('ALTER TABLE inspectionPhotos ADD COLUMN latitude REAL');
-      runSQL('ALTER TABLE inspectionPhotos ADD COLUMN longitude REAL');
-      runSQL('ALTER TABLE inspectionPhotos ADD COLUMN accuracy REAL');
-      runSQL('ALTER TABLE inspectionPhotos ADD COLUMN anomalyName TEXT');
-    }
-  }).catch(() => {
-    // Ignorar erros ao verificar
-  });
+  // Adicionar colunas de GPS se não existirem (ignorar erro se já existir)
+  runSQL('ALTER TABLE inspectionPhotos ADD COLUMN latitude REAL');
+  runSQL('ALTER TABLE inspectionPhotos ADD COLUMN longitude REAL');
+  runSQL('ALTER TABLE inspectionPhotos ADD COLUMN accuracy REAL');
+  runSQL('ALTER TABLE inspectionPhotos ADD COLUMN anomalyName TEXT');
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 9. TABELA DE HISTÓRICO DE PAUSAS
@@ -279,6 +270,15 @@ export async function initializeDatabase() {
       component
     );
   });
+
+
+  runSQL(`
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
 
   console.log('✅ Banco de dados inicializado com sucesso!');
 }
