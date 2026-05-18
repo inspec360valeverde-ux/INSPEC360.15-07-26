@@ -140,7 +140,16 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
 
   useEffect(() => {
     refresh();
+    const handleStorage = () => refresh();
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'mapa' || activeTab === 'estruturas' || activeTab === 'dashboard') {
+      refresh();
+    }
+  }, [activeTab]);
 
   function showToast(msg: string) {
     setToast(msg);

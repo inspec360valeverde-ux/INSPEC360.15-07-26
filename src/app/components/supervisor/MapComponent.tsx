@@ -171,8 +171,11 @@ export function MapComponent({
     markersRef.current = [];
 
     structures.forEach((s) => {
+      const lat = s.coordY ?? s.lat;
+      const lng = s.coordX ?? s.lng;
+      if (!lat || !lng) return;
       const color = STATUS_COLORS[s.status] || '#6b7280';
-      const marker = L.marker([s.lat, s.lng], { icon: makeIcon(color) });
+      const marker = L.marker([lat, lng], { icon: makeIcon(color) });
 
       const popupContent = `
         <div style="font-family:sans-serif;min-width:160px;">

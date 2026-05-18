@@ -1056,11 +1056,47 @@ export function SuperAdmApp({ user, onLogout }: SuperAdmAppProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-gray-600 mb-1 block">Coord. X (Longitude)</label>
-                  <Input type="number" step="0.00001" value={structureForm.coordX} onChange={(e) => setStructureForm((f) => ({ ...f, coordX: Number(e.target.value) }))} placeholder="-36.71800" />
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={structureForm.coordX === 0 ? '' : String(structureForm.coordX)}
+                    onChange={(e) => setStructureForm((f) => ({ ...f, coordX: parseFloat(e.target.value) || 0 }))}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      const parts = text.trim().split(/[\s,;]+/).filter(Boolean);
+                      if (parts.length >= 2) {
+                        const a = parseFloat(parts[0]);
+                        const b = parseFloat(parts[1]);
+                        if (!isNaN(a) && !isNaN(b)) {
+                          e.preventDefault();
+                          setStructureForm((f) => ({ ...f, coordY: a, coordX: b }));
+                        }
+                      }
+                    }}
+                    placeholder="-36.71800"
+                  />
                 </div>
                 <div>
                   <label className="text-xs text-gray-600 mb-1 block">Coord. Y (Latitude)</label>
-                  <Input type="number" step="0.00001" value={structureForm.coordY} onChange={(e) => setStructureForm((f) => ({ ...f, coordY: Number(e.target.value) }))} placeholder="-9.40000" />
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={structureForm.coordY === 0 ? '' : String(structureForm.coordY)}
+                    onChange={(e) => setStructureForm((f) => ({ ...f, coordY: parseFloat(e.target.value) || 0 }))}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      const parts = text.trim().split(/[\s,;]+/).filter(Boolean);
+                      if (parts.length >= 2) {
+                        const a = parseFloat(parts[0]);
+                        const b = parseFloat(parts[1]);
+                        if (!isNaN(a) && !isNaN(b)) {
+                          e.preventDefault();
+                          setStructureForm((f) => ({ ...f, coordY: a, coordX: b }));
+                        }
+                      }
+                    }}
+                    placeholder="-9.40000"
+                  />
                 </div>
               </div>
             </div>
