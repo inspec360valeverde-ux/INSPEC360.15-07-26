@@ -1,17 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import type { Structure } from '../../data/types';
 
-// Fix default icon paths
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
 const STATUS_COLORS: Record<string, string> = {
@@ -30,12 +26,11 @@ const STATUS_LABELS: Record<string, string> = {
   atrasado: 'Atrasado',
 };
 
-function makeIcon(color: string, pulse = false) {
+function makeIcon(color: string) {
   return L.divIcon({
     className: '',
     html: `
       <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-        ${pulse ? `<div style="position:absolute;width:28px;height:28px;border-radius:50%;background:${color};opacity:0.3;animation:pulse 1.5s infinite;"></div>` : ''}
         <div style="
           width:20px;height:20px;border-radius:50% 50% 50% 0;
           background:${color};
@@ -90,90 +85,30 @@ export function MapComponent({
   const markersRef = useRef<L.Marker[]>([]);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
+  const onStructureClickRef = useRef(onStructureClick);
+  const structuresRef = useRef(structures);
 
-  // Craibas, AL center
   const CENTER: [number, number] = [-9.4419, -36.7673];
 
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+  // Keep refs in sync without re-running effects
+  useEffect(() => { onStructureClickRef.current = onStructureClick; }, [onStructureClick]);
+  useEffect(() => { structuresRef.current = structures; }, [structures]);
 
-    const map = L.map(containerRef.current, {
-      center: CENTER,
-      zoom: 11,
-      zoomControl: true,
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
-    // 40km reference circle
-    circleRef.current = L.circle(CENTER, {
-      radius: 40000,
-      color: '#AA8933',
-      fillColor: '#AA8933',
-      fillOpacity: 0.04,
-      weight: 1.5,
-      dashArray: '6,4',
-    }).addTo(map);
-
-    // Center marker
-    L.marker(CENTER, {
-      icon: L.divIcon({
-        className: '',
-        html: `<div style="
-          background:#193A2A;color:white;
-          font-size:8px;padding:3px 6px;border-radius:4px;
-          white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3);
-          font-family:sans-serif;
-        ">⛏ Vale Verde</div>`,
-        iconAnchor: [40, 14],
-      }),
-    }).addTo(map);
-
-    mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
-
-  // Click handler
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    function onClick(e: L.LeafletMouseEvent) {
-      if (isAddingMode && onMapClick) {
-        onMapClick(e.latlng.lat, e.latlng.lng);
-      }
-    }
-
-    map.on('click', onClick);
-    return () => { map.off('click', onClick); };
-  }, [isAddingMode, onMapClick]);
-
-  // Cursor style
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    map.getContainer().style.cursor = isAddingMode ? 'crosshair' : '';
-  }, [isAddingMode]);
-
-  // Structures markers
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
+  // Render markers — can be called from map-init OR structures effect
+  const renderMarkers = useCallback((map: L.Map, structs: Structure[]) => {
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
-    structures.forEach((s) => {
+    const validPoints: L.LatLngTuple[] = [];
+
+    structs.forEach((s) => {
       const lat = s.coordY ?? s.lat;
       const lng = s.coordX ?? s.lng;
-      if (!lat || !lng) return;
+
+      if (lat == null || lng == null || (lat === 0 && lng === 0)) return;
+
+      validPoints.push([lat, lng]);
+
       const color = STATUS_COLORS[s.status] || '#6b7280';
       const marker = L.marker([lat, lng], { icon: makeIcon(color) });
 
@@ -190,13 +125,102 @@ export function MapComponent({
       `;
 
       marker.bindPopup(popupContent, { maxWidth: 220 });
-      marker.on('click', () => onStructureClick?.(s));
+      marker.on('click', () => onStructureClickRef.current?.(s));
       marker.addTo(map);
       markersRef.current.push(marker);
     });
-  }, [structures, onStructureClick]);
 
-  // Pending pin
+    // Auto-fit map to show all structure markers
+    if (validPoints.length > 0) {
+      if (validPoints.length === 1) {
+        map.setView(validPoints[0], 14);
+      } else {
+        map.fitBounds(L.latLngBounds(validPoints), { padding: [40, 40], maxZoom: 14 });
+      }
+    }
+  }, []);
+
+  // Initialize map once
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center: CENTER,
+      zoom: 11,
+      zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    circleRef.current = L.circle(CENTER, {
+      radius: 40000,
+      color: '#AA8933',
+      fillColor: '#AA8933',
+      fillOpacity: 0.04,
+      weight: 1.5,
+      dashArray: '6,4',
+    }).addTo(map);
+
+    L.marker(CENTER, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="
+          background:#193A2A;color:white;
+          font-size:8px;padding:3px 6px;border-radius:4px;
+          white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.3);
+          font-family:sans-serif;
+        ">⛏ Vale Verde</div>`,
+        iconAnchor: [40, 14],
+      }),
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    // Force Leaflet to recalculate container size (needed after lazy load / conditional render)
+    setTimeout(() => {
+      map.invalidateSize();
+      // Render markers that may have arrived before the map was ready
+      if (structuresRef.current.length > 0) {
+        renderMarkers(map, structuresRef.current);
+      }
+    }, 50);
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-render markers whenever structures change
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    renderMarkers(map, structures);
+  }, [structures, renderMarkers]);
+
+  // Click handler
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    function onClick(e: L.LeafletMouseEvent) {
+      if (isAddingMode && onMapClick) onMapClick(e.latlng.lat, e.latlng.lng);
+    }
+    map.on('click', onClick);
+    return () => { map.off('click', onClick); };
+  }, [isAddingMode, onMapClick]);
+
+  // Cursor
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.getContainer().style.cursor = isAddingMode ? 'crosshair' : '';
+  }, [isAddingMode]);
+
+  // Pending pin marker
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -223,19 +247,13 @@ export function MapComponent({
         <div className="space-y-1">
           {Object.entries(STATUS_LABELS).map(([key, label]) => (
             <div key={key} className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: STATUS_COLORS[key] }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS[key] }} />
               <span className="text-xs text-gray-600">{label}</span>
             </div>
           ))}
         </div>
         <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2">
-          <div
-            className="w-12 h-0.5"
-            style={{ borderTop: '1.5px dashed #AA8933' }}
-          />
+          <div className="w-12 h-0.5" style={{ borderTop: '1.5px dashed #AA8933' }} />
           <span className="text-xs text-gray-400">Raio 40km</span>
         </div>
       </div>
