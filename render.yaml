@@ -3,17 +3,10 @@ services:
     name: inspec360-backend
     runtime: node
     plan: free
-    buildCommand: cd backend && npm install
+    buildCommand: npm install && cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        scope: build
-        value: ./data/inspec360.db
-    staticSite:
-      buildCommand: npm install && npm run build
-      publishPath: dist
-      routes:
-        - path: /api
-          destination: http://localhost:3000/api
+      - key: PORT
+        value: 3001
