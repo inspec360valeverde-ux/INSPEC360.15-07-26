@@ -3,7 +3,7 @@ services:
     name: inspec360-backend
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build && cd backend && npm ci
+    buildCommand: npm install --force && npm run build && cd backend && npm install --force
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
