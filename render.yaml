@@ -1,26 +1,12 @@
 services:
   - type: web
-    name: inspec360-frontend
+    name: inspec360
     runtime: node
     plan: free
-    buildCommand: npm install -g pnpm && pnpm install && pnpm build
-    startCommand: npm install -g serve && serve -s dist -l 3000
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 3000
-
-  - type: web
-    name: inspec360-backend
-    runtime: node
-    plan: free
-    buildCommand: cd backend && npm install
+    buildCommand: npm install -g pnpm && pnpm install && pnpm build && cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3001
-      - key: CORS_ORIGIN
-        value: https://inspec360-frontend.onrender.com
+        value: 3000

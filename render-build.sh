@@ -1,24 +1,28 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Building INSPEC360 v2.1 on Render"
+echo "🚀 Building INSPEC360 on Render"
+echo "================================"
 
-# Install pnpm
+# Install Node version manager if needed
+echo "📦 Ensuring pnpm is available..."
 npm install -g pnpm
 
 # Install root dependencies
-echo "📦 Installing root dependencies..."
-npm install
+echo "📦 Installing root dependencies with pnpm..."
+pnpm install --frozen-lockfile 2>/dev/null || pnpm install
 
-# Install and build frontend
-echo "🎨 Building frontend..."
-pnpm install
+# Build frontend
+echo "🎨 Building frontend with Vite..."
 pnpm build
 
-# Install and prepare backend
+# Install backend dependencies
 echo "🔧 Installing backend dependencies..."
 cd backend
 npm install
 cd ..
 
 echo "✅ Build completed successfully!"
+echo "================================"
+echo "💡 Starting application on port 3000..."
+
