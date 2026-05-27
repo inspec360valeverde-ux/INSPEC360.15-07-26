@@ -1,0 +1,59 @@
+🔧 Inicializando banco de dados...
+📦 Carregando sql.js...
+📂 Carregando banco existente: /home/runner/workspace/backend/data/inspec360.db
+✅ Banco carregado (106496 bytes)
+✅ Conexão estabelecida
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+❌ Erro SQL: duplicate column name: latitude
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN latitude REAL
+   Params: []
+❌ Erro SQL: duplicate column name: longitude
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN longitude REAL
+   Params: []
+❌ Erro SQL: duplicate column name: accuracy
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN accuracy REAL
+   Params: []
+❌ Erro SQL: duplicate column name: anomalyName
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN anomalyName TEXT
+   Params: []
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+✅ Banco de dados inicializado com sucesso!
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+[90m    at Server.setupListenHandle [as _listen2] (node:net:1908:16)[39m
+[90m    at listenInCluster (node:net:1965:12)[39m
+[90m    at Server.listen (node:net:2067:7)[39m
+    at Function.listen [90m(/home/runner/workspace/[39mbackend/node_modules/[4mexpress[24m/lib/application.js:635:24[90m)[39m
+    at startServer [90m(file:///home/runner/workspace/[39mbackend/src/server.js:137:7[90m)[39m
+Emitted 'error' event on Server instance at:
+[90m    at emitErrorNT (node:net:1944:8)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)[39m {
+  code: [32m'EADDRINUSE'[39m,
+  errno: [33m-98[39m,
+  syscall: [32m'listen'[39m,
+  address: [32m'::'[39m,
+  port: [33m3001[39m
+}
+
+Node.js v20.20.0

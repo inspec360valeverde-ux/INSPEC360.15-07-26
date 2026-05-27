@@ -1,0 +1,62 @@
+🔧 Inicializando banco de dados...
+📦 Carregando sql.js...
+📂 Carregando banco existente: /home/runner/workspace/backend/data/inspec360.db
+✅ Banco carregado (106496 bytes)
+✅ Conexão estabelecida
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+❌ Erro SQL: duplicate column name: latitude
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN latitude REAL
+   Params: []
+❌ Erro SQL: duplicate column name: longitude
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN longitude REAL
+   Params: []
+❌ Erro SQL: duplicate column name: accuracy
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN accuracy REAL
+   Params: []
+❌ Erro SQL: duplicate column name: anomalyName
+   SQL: ALTER TABLE inspectionPhotos ADD COLUMN anomalyName TEXT
+   Params: []
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+💾 Banco salvo: /home/runner/workspace/backend/data/inspec360.db (106496 bytes)
+✅ Banco de dados inicializado com sucesso!
+
+╔════════════════════════════════════════════════════════════╗
+║          🚀 INSPEC360 v2.2 - Backend Iniciado              ║
+╚════════════════════════════════════════════════════════════╝
+
+📡 Server em: http://localhost:3001
+🔧 API em: http://localhost:3001/api
+🏥 Health: http://localhost:3001/api/health
+📸 Imagens: http://localhost:3001/images/inspections
+✅ Banco de dados: SQLite Local
+
+Rotas disponíveis:
+  - GET    /api/users
+  - POST   /api/users/login
+  - GET    /api/structures
+  - GET    /api/components
+  - GET    /api/service-orders
+  - GET    /api/inspections
+  - POST   /api/inspections/:id/photos
+  - GET    /api/executions
+  - POST   /api/photos/upload
+
+Pressione Ctrl+C para parar
+    

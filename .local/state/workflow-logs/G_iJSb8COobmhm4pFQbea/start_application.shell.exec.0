@@ -1,0 +1,35 @@
+
+> @figma/my-make-file@0.0.1 dev
+> vite
+
+[1G[0KPort 5000 is in use, trying another one...
+
+  [32m[1mVITE[22m v6.3.5[39m  [2mready in [0m[1m417[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5001[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.24.0.2:[1m5001[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+node:internal/fs/watchers:247
+    const error = new UVException({
+                  ^
+
+Error: ENOSPC: System limit for number of file watchers reached, watch '/home/runner/workspace/.local/share/pnpm/store/v10/files/63/5184a37f320fbe7e19e0f511622855de879539002b886da660243d2740529bfa129fab215e8944c12f211b1812ffe793921a830cd32bf80b4e38954fe0d4c3'
+[90m    at FSWatcher.<computed> (node:internal/fs/watchers:247:19)[39m
+[90m    at Object.watch (node:fs:2503:36)[39m
+    at createFsWatchInstance [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:22195:17[90m)[39m
+    at setFsWatchListener [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:22242:15[90m)[39m
+    at NodeFsHandler._watchWithNodeFs [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:22397:14[90m)[39m
+    at NodeFsHandler._handleFile [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:22461:23[90m)[39m
+    at NodeFsHandler._addToNodeFs [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:22703:21[90m)[39m
+Emitted 'error' event on FSWatcher instance at:
+    at FSWatcher._handleError [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:23896:10[90m)[39m
+    at NodeFsHandler._addToNodeFs [90m(file:///home/runner/workspace/[39mnode_modules/[4mvite[24m/dist/node/chunks/dep-DBxKXgDP.js:22711:18[90m)[39m {
+  errno: [33m-28[39m,
+  syscall: [32m'watch'[39m,
+  code: [32m'ENOSPC'[39m,
+  path: [32m'/home/runner/workspace/.local/share/pnpm/store/v10/files/63/5184a37f320fbe7e19e0f511622855de879539002b886da660243d2740529bfa129fab215e8944c12f211b1812ffe793921a830cd32bf80b4e38954fe0d4c3'[39m,
+  filename: [32m'/home/runner/workspace/.local/share/pnpm/store/v10/files/63/5184a37f320fbe7e19e0f511622855de879539002b886da660243d2740529bfa129fab215e8944c12f211b1812ffe793921a830cd32bf80b4e38954fe0d4c3'[39m
+}
+
+Node.js v20.20.0
+[1G[0K⠙[1G[0K
