@@ -19,6 +19,7 @@ export function CameraWithWatermark({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<'choose' | 'camera' | 'gallery'>('choose'); // Estado para modo
   const [isCapturing, setIsCapturing] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,12 +30,14 @@ export function CameraWithWatermark({
   const { location } = useGeolocation();
 
   useEffect(() => {
-    startCamera();
+    // NÃO iniciar câmera automaticamente
+    // Deixar usuário escolher entre câmera ou galeria
     return () => stopCamera();
   }, []);
 
   const startCamera = async () => {
     try {
+      setMode('camera'); // Indicar que está em modo câmera
       setError(null);
       setCameraReady(false);
       setIsCapturing(true);
@@ -144,6 +147,22 @@ export function CameraWithWatermark({
     stream?.getTracks().forEach(track => track.stop());
   };
 
+  // Iniciar modo galeria (pular câmera)
+  const startGalleryMode = () => {
+    setMode('gallery');
+    setError(null);
+    setRetryCount(0);
+    fileInputRef.current?.click();
+  };
+
+  // Iniciar modo câmera
+  const startCameraMode = () => {
+    setMode('camera');
+    setError(null);
+    setRetryCount(0);
+    startCamera();
+  };
+
   const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) {
       setError('Câmera não está pronta. Tente novamente.');
@@ -213,7 +232,7 @@ export function CameraWithWatermark({
     setPreviewImage(null);
     setError(null);
     setRetryCount(0);
-    startCamera();
+    setMode('choose'); // Voltar para tela de escolha
   };
 
   const retryCameraAccess = () => {
@@ -258,6 +277,7 @@ export function CameraWithWatermark({
                 reader2.onload = (e2) => {
                   const base64 = e2.target?.result as string;
                   setPreviewImage(base64);
+                  setMode('gallery'); // Indicar que é da galeria
                 };
                 reader2.readAsDataURL(blobWithWatermark);
               }
@@ -300,8 +320,32 @@ export function CameraWithWatermark({
 
         {/* Content */}
         <div className="p-4">
-          {/* Câmera ou Preview */}
-          {!previewImage && isCapturing && cameraReady ? (
+          {/* Tela de escolha: Câmera ou Galeria */}
+          {mode === 'choose' ? (
+            <div className="w-full h-80 bg-gradient-to-b from-blue-50 to-white rounded-lg flex flex-col items-center justify-center gap-6 p-6">
+              <div className="text-center">
+                <Camera className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                <h4 className="text-lg font-semibold text-gray-800 mb-2">Como deseja capturar a foto?</h4>
+                <p className="text-xs text-gray-500">Escolha câmera ou selecione de sua galeria</p>
+              </div>
+              
+              <div className="flex flex-col gap-2 w-full">
+                <button
+                  onClick={startCameraMode}
+                  className="w-full px-4 py-3 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                >
+                  <Camera className="w-5 h-5" />
+                  📷 Usar Câmera
+                </button>
+                <button
+                  onClick={startGalleryMode}
+                  className="w-full px-4 py-3 text-sm rounded-lg border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 font-medium"
+                >
+                  📁 Usar Galeria
+                </button>
+              </div>
+            </div>
+          ) : !previewImage && isCapturing && cameraReady ? (
             <>
               <video
                 ref={videoRef}
@@ -403,7 +447,15 @@ export function CameraWithWatermark({
 
         {/* Footer - Actions */}
         <div className="border-t border-gray-200 bg-gray-50 p-4">
-          {!previewImage && isCapturing && cameraReady ? (
+          {mode === 'choose' ? (
+            // Estado: Tela de escolha (botões já estão no content)
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              Cancelar
+            </button>
+          ) : !previewImage && isCapturing && cameraReady ? (
             // Estado: Câmera pronta para captura
             <div className="flex gap-2">
               <button
@@ -489,7 +541,7 @@ export function CameraWithWatermark({
                 onClick={retakePhoto}
                 className="flex-1 px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Recapturar
+                {mode === 'gallery' ? '📁 Escolher Outra' : '📷 Recapturar'}
               </button>
               <button
                 onClick={confirmPhoto}
@@ -524,22 +576,13 @@ export function CameraWithWatermark({
               </button>
             </div>
           ) : (
-            // Estado: Padrão
-            <div className="flex gap-2">
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessing}
-                className="flex-1 px-4 py-2 text-sm rounded-lg bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                📁 Galeria
-              </button>
-            </div>
+            // Estado padrão (tela de escolha com only cancelar)
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              Cancelar
+            </button>
           )}
         </div>
       </div>
