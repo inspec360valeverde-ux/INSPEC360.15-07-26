@@ -4,6 +4,7 @@ import { TecnicoApp } from './components/TecnicoApp';
 import { SupervisorApp } from './components/SupervisorApp';
 import { SuperAdmApp } from './components/SuperAdmApp';
 import { loadFromBackend } from './data/store';
+import { initUpdateCheck } from '@/utils/checkForUpdates';
 
 export type UserRole = 'tecnico' | 'supervisor' | 'superadm' | null;
 
@@ -21,6 +22,8 @@ export default function App() {
 
   useEffect(() => {
     loadFromBackend().finally(() => setBackendReady(true));
+    // Verificar atualizações periodicamente
+    initUpdateCheck();
   }, []);
 
   if (!backendReady) {

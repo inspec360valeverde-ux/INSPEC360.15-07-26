@@ -1,4 +1,6 @@
-const CACHE_NAME = 'inspec360-v2-cache'
+// Versionamento: Muda automaticamente para forçar novo cache
+const BUILD_VERSION = '20260601-001'
+const CACHE_NAME = `inspec360-v2-cache-${BUILD_VERSION}`
 const SYNC_TAG = 'inspec360-sync'
 
 const STATIC_ASSETS = [
@@ -10,6 +12,7 @@ const STATIC_ASSETS = [
 
 // Install - cache static assets
 self.addEventListener('install', (event) => {
+  console.log(`[SW] Installing version ${BUILD_VERSION}`)
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       // Cache essential files, ignore errors for missing files

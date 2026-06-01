@@ -1,0 +1,6 @@
+{
+  "version": "2.1.20260601",
+  "buildDate": "2026-06-01T00:00:00Z",
+  "features": ["camera-fix"],
+  "lastUpdate": "Fix: Resolver loop infinito da câmera com timeout e retry button"
+}
