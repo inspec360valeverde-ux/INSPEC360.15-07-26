@@ -122,7 +122,7 @@ export function CameraWithWatermark({
       if (err.name === 'NotAllowedError' || err.message?.includes('denied')) {
         errorMsg = '🔒 Permissão negada. Vá em Configurações > Privacidade e permita acesso à câmera.';
       } else if (err.name === 'NotFoundError' || err.message?.includes('not found')) {
-        errorMsg = '📷 Câmera não encontrada no dispositivo.';
+        errorMsg = '📷 Câmera não encontrada. Causas possíveis:\n\n• Dispositivo sem câmera\n• Navegador em contexto sem suporte (como iframe)\n• HTTPS obrigatório no servidor\n\nUse o upload de arquivo como alternativa.';
       } else if (err.name === 'NotReadableError' || err.message?.includes('in use')) {
         errorMsg = '⚠️ Câmera está sendo usada por outro aplicativo. Feche-o e tente novamente.';
       } else if (err.name === 'SecurityError') {
@@ -366,10 +366,10 @@ export function CameraWithWatermark({
             <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3 flex flex-col gap-2">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-red-700">{error}</p>
+                <p className="text-xs text-red-700 whitespace-pre-wrap">{error}</p>
               </div>
               
-              {/* Sugestões de solução */}
+              {/* Sugestões de solução - Permissão */}
               {error.includes('Permissão') && (
                 <div className="text-xs text-red-600 bg-red-100 p-2 rounded mt-1 space-y-1">
                   <p className="font-medium">Como permitir acesso à câmera:</p>
@@ -378,6 +378,14 @@ export function CameraWithWatermark({
                     <li><strong>Android:</strong> Configurações → Privacidade → Câmera</li>
                     <li><strong>Desktop:</strong> Verifique as permissões do navegador</li>
                   </ul>
+                </div>
+              )}
+              
+              {/* Sugestões de solução - Câmera não encontrada */}
+              {error.includes('não encontrada') && (
+                <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded mt-1 space-y-1">
+                  <p className="font-medium">💡 Alternativa disponível:</p>
+                  <p>Use o botão "📁 Usar Imagem da Galeria" abaixo para enviar uma foto de seu dispositivo. A marca d'água será adicionada automaticamente!</p>
                 </div>
               )}
             </div>
@@ -425,26 +433,54 @@ export function CameraWithWatermark({
           ) : !previewImage && error ? (
             // Estado: Câmera com erro
             <div className="flex flex-col gap-2">
-              <button
-                onClick={retryCameraAccess}
-                className="w-full px-4 py-2 text-sm rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Camera className="w-4 h-4" />
-                {retryCount > 0 ? `Tentar Novamente (Tentativa ${retryCount})` : 'Tentar Novamente'}
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessing}
-                className="w-full px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                📁 Usar Imagem do Galeria
-              </button>
-              <button
-                onClick={onClose}
-                className="w-full px-4 py-2 text-sm rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition-colors"
-              >
-                Cancelar
-              </button>
+              {/* Se for erro de câmera não encontrada, colocar galeria como opção primária */}
+              {error.includes('não encontrada') ? (
+                <>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isProcessing}
+                    className="w-full px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    📁 Usar Imagem da Galeria
+                  </button>
+                  <button
+                    onClick={retryCameraAccess}
+                    className="w-full px-4 py-2 text-sm rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Tentar Câmera Novamente
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="w-full px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={retryCameraAccess}
+                    className="w-full px-4 py-2 text-sm rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    {retryCount > 0 ? `Tentar Novamente (Tentativa ${retryCount})` : 'Tentar Novamente'}
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isProcessing}
+                    className="w-full px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    📁 Usar Imagem da Galeria
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="w-full px-4 py-2 text-sm rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </>
+              )}
             </div>
           ) : previewImage ? (
             // Estado: Preview da imagem
