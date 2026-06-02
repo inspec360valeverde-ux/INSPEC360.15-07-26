@@ -32,6 +32,7 @@ import type { Structure, ServiceOrder, StructureType } from '../data/types';
 import type { User } from '../App';
 import { CompletedOrdersTab } from './supervisor/CompletedOrdersTab';
 import { ReportPanel } from './supervisor/ReportPanel';
+import { useDataSync } from '@/hooks/useDataSync';
 
 const MapComponent = lazy(() =>
   import('./supervisor/MapComponent').then((m) => ({ default: m.MapComponent }))
