@@ -15,6 +15,7 @@ import inspectionsRouter from './routes/inspections.js';
 import executionsRouter from './routes/executions.js';
 import photosRouter from './routes/photos.js';
 import stateRouter from './routes/state.js';
+import adminRouter from './routes/admin.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -55,6 +56,7 @@ app.use('/api/inspections', inspectionsRouter);
 app.use('/api/executions', executionsRouter);
 app.use('/api/photos', photosRouter);
 app.use('/api/state', stateRouter);
+app.use('/api/admin', adminRouter);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HEALTH CHECK
