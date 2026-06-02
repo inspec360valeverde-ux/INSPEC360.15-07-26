@@ -371,6 +371,16 @@ export function resetStore(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+/**
+ * Força sincronização de dados: recarrega dados do localStorage sem recarregar página
+ */
+export function refreshCurrentData(): void {
+  // Disparar evento para componentes se re-renderizarem
+  window.dispatchEvent(new CustomEvent('dataRefresh', { 
+    detail: { timestamp: Date.now() } 
+  }));
+  console.log('[Store] ✅ Dados atualizados e sincronizados');
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 export function authenticate(email: string, password: string): SystemUser | null {

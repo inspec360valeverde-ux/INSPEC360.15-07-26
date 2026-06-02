@@ -16,6 +16,7 @@ import {
   Info,
   MapPin,
   Calendar,
+  RefreshCw,
 } from 'lucide-react';
 import logo from '../../imports/image-removebg-preview_(10).png';
 import logo2 from '../../imports/Firefly_Gemini_Flash_recrie_a_imagem_com_qualidade_melhor__331567.png';
@@ -36,6 +37,8 @@ import {
 } from '../data/store';
 import type { ServiceOrder } from '../data/types';
 import type { User } from '../App';
+import { forceSync } from '@/hooks/useDataSync';
+import { useDataSync } from '@/hooks/useDataSync';
 
 interface TecnicoAppProps {
   user: User;
@@ -56,6 +59,8 @@ export function TecnicoApp({ user, onLogout }: TecnicoAppProps) {
   const [activeOrders, setActiveOrders] = useState<ServiceOrder[]>([]);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'info' } | null>(null);
   const [orderTypeFilter, setOrderTypeFilter] = useState<'all' | 'inspecao' | 'execucao'>('all');
+  const [syncing, setSyncing] = useState(false);
+  const { syncCounter } = useDataSync();
 
   // Settings state
   const [newPassword, setNewPassword] = useState('');
@@ -70,7 +75,17 @@ export function TecnicoApp({ user, onLogout }: TecnicoAppProps) {
 
   useEffect(() => {
     refresh();
-  }, [user.id]);
+  }, [user.id, syncCounter]); // Re-render quando dados sincronizam
+
+  async function handleForceSync() {
+    setSyncing(true);
+    const success = await forceSync();
+    setSyncing(false);
+    showToast(
+      success ? '✅ Dados sincronizados com sucesso!' : '⚠️ Erro ao sincronizar. Tente novamente.',
+      success ? 'success' : 'info'
+    );
+  }
 
   function showToast(msg: string, type: 'success' | 'info' = 'success') {
     setToast({ msg, type });
@@ -454,6 +469,15 @@ export function TecnicoApp({ user, onLogout }: TecnicoAppProps) {
             <div className="text-white text-xs opacity-75">Técnico</div>
             <div className="text-white text-sm">{user.name}</div>
           </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleForceSync}
+            disabled={syncing}
+            className="text-white hover:bg-white/10"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+          </Button>
           <Button variant="ghost" size="sm" onClick={onLogout} className="text-white hover:bg-white/10">
             <LogOut className="w-4 h-4" />
           </Button>

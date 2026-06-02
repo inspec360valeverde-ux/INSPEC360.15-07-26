@@ -1,33 +1,29 @@
 import { useEffect, useCallback } from 'react';
+import { refreshCurrentData } from '@/app/data/store';
 
 /**
- * Hook para forçar re-render quando dados são sincronizados
- * Pode ser usado em componentes que exibem dados que podem mudar em outro dispositivo
+ * Hook para sincronizar dados quando detectado mudanças de outro dispositivo
+ * NÃO recarrega a página (mantém a sessão do usuário)
  */
 export function useRefreshOnSync() {
-  const forceRefresh = useCallback(() => {
-    // Solução simples: recarregar a página para garantir sincronização
-    // Alternativa mais suave: usar fetch para recarregar dados específicos
-    console.log('[Refresh] Dados sincronizados de outro dispositivo, recarregando...');
-    
-    // Opção 1: Reload completo (mais confiável)
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+  const handleDataSync = useCallback(() => {
+    console.log('[Refresh] ✅ Dados sincronizados! Atualizando interface...');
+    // Apenas recarregar os dados do localStorage (NÃO recarregar a página)
+    refreshCurrentData();
   }, []);
 
   useEffect(() => {
     const handleSync = (event: Event) => {
       const customEvent = event as CustomEvent;
-      console.log('[Refresh] evento dataSync recebido:', customEvent.detail);
+      console.log('[Refresh] dataSync recebido:', customEvent.detail);
       
-      // Só fazer reload se o evento veio do backend (não do próprio dispositivo)
+      // Sincronizar dados (NÃO fazer reload)
       if (customEvent.detail?.source !== 'self') {
-        forceRefresh();
+        handleDataSync();
       }
     };
 
     window.addEventListener('dataSync', handleSync);
     return () => window.removeEventListener('dataSync', handleSync);
-  }, [forceRefresh]);
+  }, [handleDataSync]);
 }

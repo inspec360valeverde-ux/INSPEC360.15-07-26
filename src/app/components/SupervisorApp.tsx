@@ -75,6 +75,8 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [technicians, setTechnicians] = useState<{ id: string; name: string }[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const { syncCounter } = useDataSync();
 
   // Map state
   const [isAddingStructure, setIsAddingStructure] = useState(false);
@@ -467,9 +469,15 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
             <div className="text-white text-sm">{user.name}</div>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={refresh} className="text-white/70 hover:text-white p-1.5">
-              <RefreshCw className="w-4 h-4" />
-            </button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleForceSync}
+              disabled={syncing}
+              className="text-white hover:bg-white/10"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            </Button>
             <Button variant="ghost" size="sm" onClick={onLogout} className="text-white hover:bg-white/10">
               <LogOut className="w-4 h-4" />
             </Button>

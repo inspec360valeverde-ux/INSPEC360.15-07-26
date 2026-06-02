@@ -6,7 +6,6 @@ import { SuperAdmApp } from './components/SuperAdmApp';
 import { loadFromBackend } from './data/store';
 import { initUpdateCheck } from '@/utils/checkForUpdates';
 import { usePeriodSync } from '@/hooks/usePeriodSync';
-import { useRefreshOnSync } from '@/hooks/useRefreshOnSync';
 
 export type UserRole = 'tecnico' | 'supervisor' | 'superadm' | null;
 
@@ -19,7 +18,11 @@ export interface User {
 }
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Restaurar usuário do localStorage (persistir sessão)
+    const stored = localStorage.getItem('inspec360_user');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [backendReady, setBackendReady] = useState(false);
 
   // Sincronizar dados periodicamente
@@ -27,9 +30,18 @@ export default function App() {
 
   useEffect(() => {
     loadFromBackend().finally(() => setBackendReady(true));
-    // Verificar atualizações periodicamente
+    // Verificar atualizações periodicamente (sem fazer reload)
     initUpdateCheck();
   }, []);
+
+  // Salvar usuário no localStorage quando mudar
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('inspec360_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('inspec360_user');
+    }
+  }, [user]);
 
   if (!backendReady) {
     return (
@@ -59,10 +71,7 @@ export default function App() {
 
   if (!user) return <LoginScreen onLogin={handleLogin} />;
 
-  // Componente wrapper que escuta sincronizações
   function AppContent() {
-    useRefreshOnSync();
-    
     switch (user.role) {
       case 'tecnico':   return <TecnicoApp user={user} onLogout={handleLogout} />;
       case 'supervisor': return <SupervisorApp user={user} onLogout={handleLogout} />;
