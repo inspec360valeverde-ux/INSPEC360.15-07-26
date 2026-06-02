@@ -1,6 +1,6 @@
 {
-  "version": "2.1.20260602",
-  "buildDate": "2026-06-02T14:30:00Z",
-  "features": ["camera-fix", "gallery-fallback", "period-sync", "multi-device-sync"],
-  "lastUpdate": "Feat: Sincronização periódica entre dispositivos e exibição de data/hora de atualização"
+  "version": "2.1.20260602002",
+  "buildDate": "2026-06-02T16:15:00Z",
+  "features": ["camera-fix", "gallery-fallback", "period-sync", "multi-device-sync", "multi-structure-orders"],
+  "lastUpdate": "Feat: Seleção múltipla de estruturas e correção de sincronização"
 }
