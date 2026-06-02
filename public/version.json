@@ -1,6 +1,6 @@
 {
-  "version": "2.1.20260601",
-  "buildDate": "2026-06-01T00:00:00Z",
-  "features": ["camera-fix"],
-  "lastUpdate": "Fix: Resolver loop infinito da câmera com timeout e retry button"
+  "version": "2.1.20260602",
+  "buildDate": "2026-06-02T14:30:00Z",
+  "features": ["camera-fix", "gallery-fallback", "period-sync", "multi-device-sync"],
+  "lastUpdate": "Feat: Sincronização periódica entre dispositivos e exibição de data/hora de atualização"
 }

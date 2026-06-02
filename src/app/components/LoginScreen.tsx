@@ -6,6 +6,7 @@ import { Label } from './ui/label';
 import { authenticate } from '../data/store';
 import type { User } from '../App';
 import { ShieldCheck } from 'lucide-react';
+import { useVersionInfo, formatUpdateTime } from '@/hooks/useVersionInfo';
 
 interface LoginScreenProps {
   onLogin: (user: User) => void;
@@ -16,6 +17,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const versionInfo = useVersionInfo();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,8 +151,15 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Bottom watermark */}
         <p className="text-center text-white/30 text-[10px] mt-4">
-          © 2026 INSPEC360 · Mineração Vale Verde · v2.2.0
+          © 2026 INSPEC360 · Mineração Vale Verde · v{versionInfo?.version || '2.2.0'}
         </p>
+        
+        {/* Last update info */}
+        {versionInfo && (
+          <p className="text-center text-white/40 text-[9px] mt-1.5">
+            ⏱️ Última atualização: {formatUpdateTime(versionInfo.buildDate)}
+          </p>
+        )}
       </div>
     </div>
   );
