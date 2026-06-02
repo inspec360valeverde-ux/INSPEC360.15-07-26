@@ -380,6 +380,7 @@ export function refreshCurrentData(): void {
     detail: { timestamp: Date.now() } 
   }));
   console.log('[Store] ✅ Dados atualizados e sincronizados');
+}
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
