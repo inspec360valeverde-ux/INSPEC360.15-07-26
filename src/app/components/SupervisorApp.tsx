@@ -94,6 +94,7 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
 
   // Order form
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
   const [orderForm, setOrderForm] = useState({
     type: 'inspecao' as 'inspecao' | 'execucao',
     structureId: '',
@@ -199,33 +200,44 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
 
   // ── Order form ────────────────────────────────────────────────────────────────
   function handleAddOrder() {
-    if (!orderForm.structureId || !orderForm.technicianId || !orderForm.deadline) {
-      showToast('Preencha todos os campos obrigatórios.');
+    const structuresToProcess = selectedStructureIds.length > 0 
+      ? selectedStructureIds 
+      : (orderForm.structureId ? [orderForm.structureId] : []);
+
+    if (structuresToProcess.length === 0 || !orderForm.technicianId || !orderForm.deadline) {
+      showToast('Selecione estrutura(s), técnico e prazo.');
       return;
     }
-    const newOrder: ServiceOrder = {
-      id: `os${generateId()}`,
-      type: orderForm.type,
-      structureId: orderForm.structureId,
-      technicianId: orderForm.technicianId,
-      supervisorId: user.id,
-      priority: orderForm.priority,
-      deadline: orderForm.deadline,
-      scheduledDate: orderForm.scheduledDate,
-      status: 'pendente',
-      createdAt: new Date().toISOString(),
-      component: orderForm.component || undefined,
-      anomaly: orderForm.anomaly || undefined,
-      description: orderForm.description || undefined,
-      details: orderForm.details || undefined,
-      deadlineRules: orderForm.deadlineRules || undefined,
-      supervisorNotes: orderForm.supervisorNotes || undefined,
-      photos: [],
-      activityLog: [],
-    };
-    addServiceOrder(newOrder);
+
+    let createdCount = 0;
+    structuresToProcess.forEach((structureId) => {
+      const newOrder: ServiceOrder = {
+        id: `os${generateId()}`,
+        type: orderForm.type,
+        structureId: structureId,
+        technicianId: orderForm.technicianId,
+        supervisorId: user.id,
+        priority: orderForm.priority,
+        deadline: orderForm.deadline,
+        scheduledDate: orderForm.scheduledDate,
+        status: 'pendente',
+        createdAt: new Date().toISOString(),
+        component: orderForm.component || undefined,
+        anomaly: orderForm.anomaly || undefined,
+        description: orderForm.description || undefined,
+        details: orderForm.details || undefined,
+        deadlineRules: orderForm.deadlineRules || undefined,
+        supervisorNotes: orderForm.supervisorNotes || undefined,
+        photos: [],
+        activityLog: [],
+      };
+      addServiceOrder(newOrder);
+      createdCount++;
+    });
+
     refresh();
     setShowOrderForm(false);
+    setSelectedStructureIds([]);
     setOrderForm({
       type: 'inspecao',
       structureId: '',
@@ -240,7 +252,11 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
       deadlineRules: '',
       supervisorNotes: '',
     });
-    showToast('Ordem de serviço criada com sucesso!');
+
+    const msg = createdCount === 1 
+      ? 'Ordem de serviço criada com sucesso!' 
+      : `${createdCount} ordens de serviço criadas com sucesso!`;
+    showToast(msg);
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -703,7 +719,7 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
                     className="w-full mt-3 text-white"
                     style={{ backgroundColor: '#193A2A' }}
                     onClick={() => {
-                      setOrderForm((f) => ({ ...f, structureId: selectedMapStructure.id }));
+                      setSelectedStructureIds([selectedMapStructure.id]);
                       setShowOrderForm(true);
                       setSelectedMapStructure(null);
                     }}
@@ -839,7 +855,10 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
               <Button
                 className="text-white shrink-0"
                 style={{ backgroundColor: '#AA8933' }}
-                onClick={() => setShowOrderForm(true)}
+                onClick={() => {
+                  setSelectedStructureIds([]);
+                  setShowOrderForm(true);
+                }}
               >
                 <Plus className="w-4 h-4 mr-1.5" />
                 Nova Ordem
@@ -975,7 +994,7 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
                           variant="outline"
                           className="flex-1 text-xs"
                           onClick={() => {
-                            setOrderForm((f) => ({ ...f, structureId: s.id }));
+                            setSelectedStructureIds([s.id]);
                             setShowOrderForm(true);
                           }}
                         >
@@ -1061,19 +1080,55 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
               </div>
             </div>
 
-            {/* Structure */}
+            {/* Structure - Multiple selection */}
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Estrutura *</label>
-              <select
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#AA8933]"
-                value={orderForm.structureId}
-                onChange={(e) => setOrderForm((f) => ({ ...f, structureId: e.target.value }))}
-              >
-                <option value="">Selecionar estrutura...</option>
-                {structures.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} – {s.type}</option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-gray-600 block">Estrutura(s) *</label>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setSelectedStructureIds(structures.map(s => s.id))}
+                    className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                  >
+                    Todas
+                  </button>
+                  <button
+                    onClick={() => setSelectedStructureIds([])}
+                    className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                  >
+                    Limpar
+                  </button>
+                </div>
+              </div>
+              <div className="border border-gray-200 rounded-lg p-3 space-y-2 max-h-60 overflow-y-auto bg-gray-50">
+                {structures.length === 0 ? (
+                  <div className="text-xs text-gray-500 text-center py-4">Nenhuma estrutura cadastrada</div>
+                ) : (
+                  structures.map((s) => (
+                    <label key={s.id} className="flex items-start gap-2 p-2 cursor-pointer hover:bg-white rounded transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={selectedStructureIds.includes(s.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedStructureIds([...selectedStructureIds, s.id]);
+                          } else {
+                            setSelectedStructureIds(selectedStructureIds.filter(id => id !== s.id));
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-[#193A2A] focus:ring-[#193A2A] mt-0.5 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm" style={{ color: '#193A2A' }}>{s.name}</div>
+                        <div className="text-xs text-gray-500">{s.type} – {s.lt}</div>
+                        <div className="text-xs text-gray-400">Prog.: {s.progressiva.toLocaleString('pt-BR')} m • {s.voltage}</div>
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {selectedStructureIds.length > 0 && `${selectedStructureIds.length} estrutura(s) selecionada(s)`}
+              </div>
             </div>
 
             {/* Technician */}
