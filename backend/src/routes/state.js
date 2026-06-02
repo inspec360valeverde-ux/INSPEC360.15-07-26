@@ -6,7 +6,7 @@ const router = express.Router();
 // GET /api/state — load full app state
 router.get('/', async (req, res) => {
   try {
-    const rows = await getQuery('SELECT value FROM app_state WHERE key = $1', ['app_data']);
+    const rows = await getQuery('SELECT value FROM state WHERE key = $1', ['app_data']);
     if (rows.length > 0) {
       res.json({ state: JSON.parse(rows[0].value), found: true });
     } else {
@@ -23,11 +23,11 @@ router.post('/', async (req, res) => {
   try {
     const stateJson = JSON.stringify(req.body.state);
     const now = new Date().toISOString();
-    const existing = await getQuery('SELECT key FROM app_state WHERE key = $1', ['app_data']);
+    const existing = await getQuery('SELECT key FROM state WHERE key = $1', ['app_data']);
     if (existing.length > 0) {
-      await runSQL('UPDATE app_state SET value = $1, updated_at = $2 WHERE key = $3', [stateJson, now, 'app_data']);
+      await runSQL('UPDATE state SET value = $1, "updatedAt" = $2 WHERE key = $3', [stateJson, now, 'app_data']);
     } else {
-      await runSQL('INSERT INTO app_state (key, value, updated_at) VALUES ($1, $2, $3)', ['app_data', stateJson, now]);
+      await runSQL('INSERT INTO state (key, value, "updatedAt") VALUES ($1, $2, $3)', ['app_data', stateJson, now]);
     }
     res.json({ success: true, updated_at: now });
   } catch (error) {
@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
 // GET /api/state/export — download the state as a JSON file
 router.get('/export', async (req, res) => {
   try {
-    const rows = await getQuery('SELECT value, updated_at FROM app_state WHERE key = $1', ['app_data']);
+    const rows = await getQuery('SELECT value, "updatedAt" FROM state WHERE key = $1', ['app_data']);
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Sem dados para exportar' });
     }
@@ -48,7 +48,7 @@ router.get('/export', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/json');
     res.json({
-      exported_at: rows[0].updated_at,
+      exported_at: rows[0].updatedAt,
       version: '2.2.0',
       data: state,
     });
