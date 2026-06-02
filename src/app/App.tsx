@@ -5,6 +5,8 @@ import { SupervisorApp } from './components/SupervisorApp';
 import { SuperAdmApp } from './components/SuperAdmApp';
 import { loadFromBackend } from './data/store';
 import { initUpdateCheck } from '@/utils/checkForUpdates';
+import { usePeriodSync } from '@/hooks/usePeriodSync';
+import { useRefreshOnSync } from '@/hooks/useRefreshOnSync';
 
 export type UserRole = 'tecnico' | 'supervisor' | 'superadm' | null;
 
@@ -19,6 +21,9 @@ export interface User {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [backendReady, setBackendReady] = useState(false);
+
+  // Sincronizar dados periodicamente
+  usePeriodSync();
 
   useEffect(() => {
     loadFromBackend().finally(() => setBackendReady(true));
@@ -54,10 +59,17 @@ export default function App() {
 
   if (!user) return <LoginScreen onLogin={handleLogin} />;
 
-  switch (user.role) {
-    case 'tecnico':   return <TecnicoApp user={user} onLogout={handleLogout} />;
-    case 'supervisor': return <SupervisorApp user={user} onLogout={handleLogout} />;
-    case 'superadm':  return <SuperAdmApp user={user} onLogout={handleLogout} />;
-    default:          return <LoginScreen onLogin={handleLogin} />;
+  // Componente wrapper que escuta sincronizações
+  function AppContent() {
+    useRefreshOnSync();
+    
+    switch (user.role) {
+      case 'tecnico':   return <TecnicoApp user={user} onLogout={handleLogout} />;
+      case 'supervisor': return <SupervisorApp user={user} onLogout={handleLogout} />;
+      case 'superadm':  return <SuperAdmApp user={user} onLogout={handleLogout} />;
+      default:          return <LoginScreen onLogin={handleLogin} />;
+    }
   }
+
+  return <AppContent />;
 }
