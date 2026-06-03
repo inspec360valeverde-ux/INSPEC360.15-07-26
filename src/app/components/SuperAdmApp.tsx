@@ -55,6 +55,8 @@ import type { SystemUser, Structure, StructureType, StructureStatus, SeverityOpt
 import type { ComponentRule } from '../data/types';
 import type { User } from '../App';
 import { DatabasesPanel } from './superadm/DatabasesPanel';
+import { BackupPanel } from './BackupPanel';
+import { useAutoBackup } from '@/hooks/useAutoBackup';
 
 interface SuperAdmAppProps {
   user: User;
@@ -88,6 +90,10 @@ export function SuperAdmApp({ user, onLogout }: SuperAdmAppProps) {
   const [activityItems, setActivityItems] = useState<{ text: string; time: string }[]>([]);
   const [checklistComponents, setChecklistComponents] = useState<ComponentRule[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [showBackupPanel, setShowBackupPanel] = useState(false);
+
+  // Habilitar backups automáticos
+  useAutoBackup();
 
   // ── User form ──────────────────────────────────────────────────────────────
   const [showUserForm, setShowUserForm] = useState(false);
@@ -419,10 +425,16 @@ export function SuperAdmApp({ user, onLogout }: SuperAdmAppProps) {
               <div>{user.name}</div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onLogout} className="text-white hover:bg-white/10">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowBackupPanel(true)} className="text-white hover:bg-white/10">
+              <Database className="w-4 h-4 mr-2" />
+              Backup
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onLogout} className="text-white hover:bg-white/10">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -438,6 +450,7 @@ export function SuperAdmApp({ user, onLogout }: SuperAdmAppProps) {
             <TabsTrigger value="activity"><Activity className="w-4 h-4 mr-2" />Atividades</TabsTrigger>
             <TabsTrigger value="logs"><Terminal className="w-4 h-4 mr-2" />Logs</TabsTrigger>
             <TabsTrigger value="status"><Cpu className="w-4 h-4 mr-2" />Status</TabsTrigger>
+            <TabsTrigger value="backup" onClick={() => setShowBackupPanel(true)}><HardDrive className="w-4 h-4 mr-2" />Backup</TabsTrigger>
             <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-2" />Configurações</TabsTrigger>
           </TabsList>
 
@@ -935,6 +948,9 @@ export function SuperAdmApp({ user, onLogout }: SuperAdmAppProps) {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* ── Backup Panel ─────────────────────────────────────────────────────── */}
+      {showBackupPanel && <BackupPanel onClose={() => setShowBackupPanel(false)} />}
 
       {/* ── User Form Modal ────────────────────────────────────────────────── */}
       {showUserForm && (
