@@ -32,7 +32,7 @@ import type { Structure, ServiceOrder, StructureType } from '../data/types';
 import type { User } from '../App';
 import { CompletedOrdersTab } from './supervisor/CompletedOrdersTab';
 import { ReportPanel } from './supervisor/ReportPanel';
-import { useDataSync } from '@/hooks/useDataSync';
+import { useDataSync, forceSync } from '@/hooks/useDataSync';
 
 const MapComponent = lazy(() =>
   import('./supervisor/MapComponent').then((m) => ({ default: m.MapComponent }))
@@ -158,6 +158,15 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  }
+
+  async function handleForceSync() {
+    setSyncing(true);
+    const success = await forceSync();
+    setSyncing(false);
+    showToast(
+      success ? '✅ Dados sincronizados com sucesso!' : '⚠️ Erro ao sincronizar. Tente novamente.'
+    );
   }
 
   // ── Map handlers ─────────────────────────────────────────────────────────────
