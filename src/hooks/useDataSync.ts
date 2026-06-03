@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getStore } from '@/app/data/store';
 
 /**
  * Hook para disparar re-render quando dados são sincronizados
@@ -22,40 +23,33 @@ export function useDataSync() {
 
 /**
  * Força sincronização imediata com backend
- * Será silenciosa se backend não responder (localStorage é fallback)
  */
 export async function forceSync(): Promise<boolean> {
   try {
     console.log('[ForceSync] Sincronizando com backend...');
     
+    const store = getStore();
     const response = await fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        state: null, // Dummy state - backend usará apenas para confirmação
-        timestamp: Date.now()
+        state: store
       }),
-      signal: AbortSignal.timeout(10000) // Timeout de 10s
+      signal: AbortSignal.timeout(10000)
     });
     
     if (response.ok) {
-      console.log('[ForceSync] ✅ Sincronização concluída');
-      // Disparar evento de sincronização
+      console.log('[ForceSync] ✅ Sincronização concluída com sucesso');
       window.dispatchEvent(new CustomEvent('dataRefresh', { 
         detail: { timestamp: Date.now(), source: 'forceSync' } 
       }));
       return true;
     }
     
-    // Se backend indisponível, ainda é sucesso (localStorage é fallback)
-    console.warn('[ForceSync] ⚠️ Backend indisponível, usando localStorage');
-    window.dispatchEvent(new CustomEvent('dataRefresh', { 
-      detail: { timestamp: Date.now(), source: 'forceSync', offline: true } 
-    }));
-    return true;
+    console.error('[ForceSync] ❌ Erro do servidor:', response.status);
+    return false;
   } catch (error) {
-    console.warn('[ForceSync] ⚠️ Erro ao sincronizar, modo offline:', error);
-    // Sempre retornar true porque o localStorage é o fallback
-    return true;
+    console.error('[ForceSync] ❌ Erro ao sincronizar:', error);
+    return false;
   }
 }
