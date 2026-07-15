@@ -18,11 +18,13 @@ import {
   exportDataAsJSON,
   exportStructuresAsCSV,
   exportServiceOrdersAsCSV,
+  exportServiceOrdersAsExcel,
   createBackupInStorage,
   getBackupsList,
   restoreBackup,
   deleteBackup,
   downloadFile,
+  downloadBlobFile,
   importDataFromFile,
   formatFileSize,
   formatDate,
@@ -89,6 +91,21 @@ export function BackupPanel({ onClose }: BackupPanelProps) {
       const filename = `inspec360_ordens_${new Date().toISOString().split('T')[0]}.csv`;
       downloadFile(csv, filename, 'csv');
       showToast('✅ Ordens de serviço exportadas com sucesso!', 'success');
+    } catch (error) {
+      showToast(`❌ Erro ao exportar: ${error}`, 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleExportOrdersExcel = () => {
+    try {
+      setIsProcessing(true);
+      const store = getStore();
+      const excelBlob = exportServiceOrdersAsExcel(store);
+      const filename = `inspec360_ordens_${new Date().toISOString().split('T')[0]}.xlsx`;
+      downloadBlobFile(excelBlob, filename);
+      showToast('✅ Ordens de serviço exportadas em Excel com sucesso!', 'success');
     } catch (error) {
       showToast(`❌ Erro ao exportar: ${error}`, 'error');
     } finally {
@@ -283,6 +300,31 @@ export function BackupPanel({ onClose }: BackupPanelProps) {
                       className="bg-[#193A2A] hover:bg-[#2a5242] text-white whitespace-nowrap"
                     >
                       {isProcessing ? '⏳ Processando...' : '📊 Exportar CSV'}
+                    </Button>
+                  </div>
+                </Card>
+
+                {/* Excel - Orders */}
+                <Card className="p-6 hover:shadow-lg transition">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#193A2A] flex items-center gap-2">
+                        <Download className="w-5 h-5" />
+                        Exportar Ordens de Serviço (Excel)
+                      </h3>
+                      <p className="text-gray-600 text-sm mt-2">
+                        Exporta todas as ordens no formato .xlsx para análise avançada.
+                      </p>
+                      <div className="mt-3 text-xs text-gray-500">
+                        <p>Inclui número manual, prazo, status e histórico de cada ordem.</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleExportOrdersExcel}
+                      disabled={isProcessing}
+                      className="bg-[#193A2A] hover:bg-[#2a5242] text-white whitespace-nowrap"
+                    >
+                      {isProcessing ? '⏳ Processando...' : '📄 Exportar Excel'}
                     </Button>
                   </div>
                 </Card>

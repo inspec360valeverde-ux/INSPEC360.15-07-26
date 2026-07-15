@@ -310,6 +310,7 @@ export function ExecutionFlow({ order, user, onBack, onComplete, onPause }: Exec
             photos={photos}
             onPhotosChange={setPhotos}
             inspectionId={order.id}
+            technicianName={user.name}
           />
         </div>
       </div>

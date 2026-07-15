@@ -61,6 +61,7 @@ function generateReportPDF(
       <tr>
         <td>${i + 1}</td>
         <td>${o.id.toUpperCase()}</td>
+        <td>${o.manualOrderNumber || '—'}</td>
         <td>${o.type === 'inspecao' ? 'Inspeção' : 'Execução'}</td>
         <td>${getStructureName(o.structureId)}</td>
         <td>${getTechnicianName(o.technicianId)}</td>
@@ -293,6 +294,7 @@ function generateReportPDF(
         <tr>
           <th>#</th>
           <th>ID</th>
+          <th>Número OS</th>
           <th>Tipo</th>
           <th>Estrutura</th>
           <th>Técnico</th>
@@ -302,7 +304,7 @@ function generateReportPDF(
           <th>Conclusão</th>
         </tr>
       </thead>
-      <tbody>${orderRows || '<tr><td colspan="9" style="text-align:center;color:#9ca3af">Nenhuma ordem encontrada</td></tr>'}</tbody>
+      <tbody>${orderRows || '<tr><td colspan="10" style="text-align:center;color:#9ca3af">Nenhuma ordem encontrada</td></tr>'}</tbody>
     </table>
   </div>
 

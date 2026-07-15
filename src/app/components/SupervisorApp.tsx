@@ -17,6 +17,7 @@ import {
   FileText,
   Filter,
 } from 'lucide-react';
+import { ImageViewerModal } from './ImageViewerModal';
 import newLogo from '../../imports/Firefly_Gemini_Flash_recrie_a_imagem_com_qualidade_melhor__331567-1.png';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -99,6 +100,7 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
   const [orderForm, setOrderForm] = useState({
+    manualOrderNumber: '',
     type: 'inspecao' as 'inspecao' | 'execucao',
     structureId: '',
     technicianId: '',
@@ -115,6 +117,10 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
 
   // Order detail view
   const [viewOrder, setViewOrder] = useState<ServiceOrder | null>(null);
+
+  // Image viewer modal
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewingImage, setViewingImage] = useState<{ url: string; anomalyName: string } | null>(null);
 
   // Search
   const [orderSearch, setOrderSearch] = useState('');
@@ -225,6 +231,7 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
     structuresToProcess.forEach((structureId) => {
       const newOrder: ServiceOrder = {
         id: `os${generateId()}`,
+        manualOrderNumber: orderForm.manualOrderNumber || undefined,
         type: orderForm.type,
         structureId: structureId,
         technicianId: orderForm.technicianId,
@@ -251,6 +258,7 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
     setShowOrderForm(false);
     setSelectedStructureIds([]);
     setOrderForm({
+      manualOrderNumber: '',
       type: 'inspecao',
       structureId: '',
       technicianId: '',
@@ -349,6 +357,10 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
             )}
 
             <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-xs text-gray-500">Número da Ordem</div>
+                <div className="text-sm">{viewOrder.manualOrderNumber || '—'}</div>
+              </div>
               <div>
                 <div className="text-xs text-gray-500">Técnico</div>
                 <div className="text-sm">{techName}</div>
@@ -1163,20 +1175,14 @@ export function SupervisorApp({ user, onLogout }: SupervisorAppProps) {
                 ))}
               </select>
             </div>
-
-            {/* Priority + dates */}
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="text-xs text-gray-600 mb-1 block">Prioridade *</label>
-                <select
-                  className="w-full text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white focus:outline-none"
-                  value={orderForm.priority}
-                  onChange={(e) => setOrderForm((f) => ({ ...f, priority: e.target.value as 'alta' | 'media' | 'baixa' }))}
-                >
-                  <option value="alta">Alta</option>
-                  <option value="media">Média</option>
-                  <option value="baixa">Baixa</option>
-                </select>
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Número da Ordem</label>
+                  <Input
+                    placeholder="Número manual da ordem"
+                    value={orderForm.manualOrderNumber}
+                    onChange={(e) => setOrderForm((f) => ({ ...f, manualOrderNumber: e.target.value }))}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-gray-600 mb-1 block">Prazo *</label>

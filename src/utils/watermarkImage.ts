@@ -6,6 +6,7 @@ export interface WatermarkOptions {
   latitude?: number;
   longitude?: number;
   accuracy?: number;
+  technicianName?: string;
   componentName?: string;
   anomalyName?: string;
 }
@@ -51,7 +52,13 @@ export async function addWatermarkToImage(
           ctx.fillText(text, x, yPos);
         };
 
-        // Linha 1: Componente + Anomalia
+        // Linha 1: Técnico
+        if (options.technicianName) {
+          drawTextWithStroke(`Técnico: ${options.technicianName}`, padding, y);
+          y += fontSize * 1.3;
+        }
+
+        // Linha 2: Componente + Anomalia
         if (options.componentName || options.anomalyName) {
           const componentText = `${options.componentName || 'Foto'} ${
             options.anomalyName ? `- ${options.anomalyName}` : ''
@@ -60,7 +67,7 @@ export async function addWatermarkToImage(
           y += fontSize * 1.3;
         }
 
-        // Linha 2: Data e Hora
+        // Linha 3: Data e Hora
         const now = new Date();
         const dateTimeText = now.toLocaleString('pt-BR', {
           year: 'numeric',
@@ -158,7 +165,13 @@ export async function addWatermarkToCanvas(
         ctx.fillText(text, x, yPos);
       };
 
-      // Linha 1: Componente + Anomalia
+      // Linha 1: Técnico
+      if (options.technicianName) {
+        drawTextWithStroke(`Técnico: ${options.technicianName}`, padding, y);
+        y += fontSize * 1.3;
+      }
+
+      // Linha 2: Componente + Anomalia
       if (options.componentName || options.anomalyName) {
         const componentText = `${options.componentName || 'Foto'} ${
           options.anomalyName ? `- ${options.anomalyName}` : ''
@@ -167,7 +180,7 @@ export async function addWatermarkToCanvas(
         y += fontSize * 1.3;
       }
 
-      // Linha 2: Data e Hora
+      // Linha 3: Data e Hora
       const now = new Date();
       const dateTimeText = now.toLocaleString('pt-BR', {
         year: 'numeric',

@@ -9,6 +9,8 @@ import {
   getSeverities,
 } from '../../data/store';
 import { useState, useRef } from 'react';
+import { ImageViewerModal } from '../ImageViewerModal';
+import { AnomalyPhotoCapture } from '../AnomalyPhotoCapture';
 import {
   ChevronLeft,
   ChevronRight,
@@ -83,6 +85,21 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseMotivo, setPauseMotivo] = useState('');
 
+  // ── Image viewer modal ──
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewingImage, setViewingImage] = useState<{ url: string; anomalyName: string } | null>(null);
+
+  // ── Photo capture for anomaly ──
+  const [showPhotoCapture, setShowPhotoCapture] = useState(false);
+  const [capturingPhotoFor, setCapturingPhotoFor] = useState<{
+    name: string;
+    phase: AnomalyPhase | AnomalyPhase[];
+  } | null>(null);
+
+  // ── Delete confirmation ──
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAnomalyId, setDeletingAnomalyId] = useState<string | null>(null);
+
   const currentIdx = inspData.currentComponentIndex;
   const currentRule = INSPECTION_COMPONENTS[currentIdx];
   const currentComp = inspData.components[currentIdx];
@@ -108,6 +125,17 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
 
   function addAnomaly() {
     if (!addingAnomaly.name) return;
+    // Instead of adding immediately, open photo capture
+    setCapturingPhotoFor({
+      name: addingAnomaly.name,
+      phase: addingAnomaly.phase,
+    });
+    setShowPhotoCapture(true);
+  }
+
+  function handlePhotoCaptureDone(base64: string) {
+    if (!capturingPhotoFor) return;
+    
     const entry: AnomalyEntry = {
       id: generateId(),
       anomalyName: addingAnomaly.name,
@@ -119,7 +147,9 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
       requiresShutdown: addingAnomaly.requiresShutdown,
       isRecurrent: addingAnomaly.isRecurrent,
       observation: addingAnomaly.observation,
+      photo: base64, // 📸 Attach photo to anomaly
     };
+    
     const updated = { ...inspData };
     updated.components[currentIdx] = {
       ...currentComp,
@@ -129,15 +159,27 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
     save(updated);
     setAddingAnomaly(defaultAnomaly);
     setShowAnomalyForm(false);
+    setShowPhotoCapture(false);
+    setCapturingPhotoFor(null);
   }
 
   function removeAnomaly(anomalyId: string) {
+    setDeletingAnomalyId(anomalyId);
+    setShowDeleteConfirm(true);
+  }
+
+  function confirmDeleteAnomaly() {
+    if (!deletingAnomalyId) return;
+    
     const updated = { ...inspData };
     const comp = { ...currentComp };
-    comp.anomalies = comp.anomalies.filter((a) => a.id !== anomalyId);
+    comp.anomalies = comp.anomalies.filter((a) => a.id !== deletingAnomalyId);
     if (comp.anomalies.length === 0 && comp.status === 'anomalia') comp.status = 'pendente';
     updated.components[currentIdx] = comp;
     save(updated);
+    
+    setShowDeleteConfirm(false);
+    setDeletingAnomalyId(null);
   }
 
   function goNext() {
@@ -314,6 +356,58 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
   // ── Main checklist step ─────────────────────────────────────────────────────
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#f5f5f5' }}>
+      {/* ── Modals ── */}
+      <ImageViewerModal
+        isOpen={showImageViewer}
+        imageUrl={viewingImage?.url || ''}
+        anomalyName={viewingImage?.anomalyName}
+        title="Evidência Fotográfica"
+        onClose={() => {
+          setShowImageViewer(false);
+          setViewingImage(null);
+        }}
+      />
+
+      <AnomalyPhotoCapture
+        isOpen={showPhotoCapture}
+        anomalyName={capturingPhotoFor?.name || ''}
+        onPhotoCapture={handlePhotoCaptureDone}
+        onCancel={() => {
+          setShowPhotoCapture(false);
+          setCapturingPhotoFor(null);
+        }}
+      />
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 space-y-4 max-w-sm">
+            <h3 className="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
+            <p className="text-gray-600">
+              Você tem certeza que deseja excluir esta anomalia? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeletingAnomalyId(null);
+                }}
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteAnomaly}
+                className="flex-1 px-4 py-2 rounded-lg text-white font-medium transition-colors"
+                style={{ backgroundColor: '#dc2626' }}
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
 
       {/* Header */}
@@ -633,11 +727,35 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
                   const sev = getSeverityById(a.severity);
                   return (
                     <div key={a.id} className="flex items-start gap-3 px-4 py-3">
+                      {/* Photo thumbnail if exists */}
+                      {a.photo && (
+                        <button
+                          onClick={() => {
+                            setViewingImage({
+                              url: a.photo!,
+                              anomalyName: a.anomalyName,
+                            });
+                            setShowImageViewer(true);
+                          }}
+                          className="shrink-0 group"
+                        >
+                          <img
+                            src={a.photo}
+                            alt={a.anomalyName}
+                            className="w-12 h-12 rounded-lg object-cover border-2 border-gray-200 group-hover:border-amber-500 transition-all cursor-pointer"
+                          />
+                          <div className="absolute text-xs bg-black/80 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                            Ver foto
+                          </div>
+                        </button>
+                      )}
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm" style={{ color: '#193A2A' }}>{a.anomalyName}</span>
                           <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: sev.color }}>{sev.label}</span>
                           <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: PHASE_COLORS[a.phase] + '20', color: PHASE_COLORS[a.phase] }}>F{a.phase}</span>
+                          {a.photo && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-600">📸 Com foto</span>}
                         </div>
                         <div className="flex gap-1 mt-1 flex-wrap">
                           {a.isEmenda && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600">Emenda</span>}
@@ -646,7 +764,11 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
                         </div>
                         {a.observation && <p className="text-xs text-gray-500 mt-0.5">{a.observation}</p>}
                       </div>
-                      <button onClick={() => removeAnomaly(a.id)} className="text-gray-400 hover:text-red-500 shrink-0">
+
+                      <button
+                        onClick={() => removeAnomaly(a.id)}
+                        className="text-gray-400 hover:text-red-500 shrink-0 transition-colors"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -667,6 +789,7 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
             componentName={currentComp?.componentName}
             anomalyId={currentComp?.anomalies?.[0]?.id}
             anomalyName={currentComp?.anomalies?.[0]?.anomalyName}
+            technicianName={user.name}
             photos={currentComp?.photos || []}
             onPhotosChange={(newPhotos) => {
               const updated = { ...inspData };

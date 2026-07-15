@@ -9,6 +9,7 @@ interface PhotoManagerProps {
   componentName?: string;
   anomalyId?: string;
   anomalyName?: string;
+  technicianName?: string;
   photos: string[];
   onPhotosChange: (photos: string[]) => void;
   inspectionId?: string;
@@ -19,6 +20,7 @@ export function PhotoManager({
   componentName,
   anomalyId,
   anomalyName,
+  technicianName,
   photos,
   onPhotosChange,
   inspectionId
@@ -39,6 +41,7 @@ export function PhotoManager({
           latitude: location?.latitude,
           longitude: location?.longitude,
           accuracy: location?.accuracy,
+          technicianName,
           componentName,
           anomalyName
         });
@@ -159,6 +162,7 @@ export function PhotoManager({
         <CameraWithWatermark
           componentName={componentName}
           anomalyName={anomalyName}
+          technicianName={technicianName}
           onPhotoCapture={(base64) => {
             onPhotosChange([...photos, base64]);
             setShowCamera(false);

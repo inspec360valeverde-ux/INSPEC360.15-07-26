@@ -1,10 +1,16 @@
+# Render configuration for INSPEC360 (frontend + backend + DB)
+
 services:
+  # Backend service (Node/Express)
   - type: web
-    name: inspec360
-    runtime: node
+    name: inspec360-backend
+    env: node
     plan: free
-    buildCommand: npm install --legacy-peer-deps && npm run build && cd backend && npm install --legacy-peer-deps
-    startCommand: cd backend && npm start
+    repo: https://github.com/inspec360valeverde-ux/INSPEC360.15-07-26.git
+    branch: main
+    buildCommand: cd backend && pnpm install --frozen-lockfile || npm install
+    startCommand: cd backend && pnpm start || npm start
+    region: oregon
     envVars:
       - key: NODE_ENV
         value: production
@@ -12,3 +18,22 @@ services:
         fromDatabase:
           name: inspec360-db
           property: connectionString
+
+  # Frontend: static site built with Vite
+  - type: static
+    name: inspec360-frontend
+    repo: https://github.com/inspec360valeverde-ux/INSPEC360.15-07-26.git
+    branch: main
+    buildCommand: pnpm install --frozen-lockfile || npm install && pnpm build || npm run build
+    publish: dist
+    region: oregon
+
+databases:
+  - name: inspec360-db
+    plan: starter
+    engine: postgres
+    region: oregon
+
+# Notes:
+# - Adjust `region` values according to your Render account preferences.
+# - If you prefer `npm` instead of `pnpm`, modify the build/start commands accordingly.

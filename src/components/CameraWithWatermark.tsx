@@ -6,6 +6,7 @@ import { addWatermarkToCanvas } from '@/utils/watermarkImage';
 interface CameraWithWatermarkProps {
   componentName?: string;
   anomalyName?: string;
+  technicianName?: string;
   onPhotoCapture: (base64: string) => void;
   onClose: () => void;
 }
@@ -13,6 +14,7 @@ interface CameraWithWatermarkProps {
 export function CameraWithWatermark({
   componentName,
   anomalyName,
+  technicianName,
   onPhotoCapture,
   onClose
 }: CameraWithWatermarkProps) {
@@ -76,6 +78,7 @@ export function CameraWithWatermark({
         latitude: location?.latitude,
         longitude: location?.longitude,
         accuracy: location?.accuracy,
+        technicianName,
         componentName,
         anomalyName
       });
@@ -120,6 +123,7 @@ export function CameraWithWatermark({
             latitude: location?.latitude,
             longitude: location?.longitude,
             accuracy: location?.accuracy,
+            technicianName,
             componentName,
             anomalyName
           });

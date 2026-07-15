@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx';
 import type { AppData } from '@/app/data/types';
 
 export interface BackupFile {
@@ -81,9 +82,10 @@ export function exportStructuresAsCSV(data: AppData): string {
  * Exporta dados como CSV (ordens de serviço)
  */
 export function exportServiceOrdersAsCSV(data: AppData): string {
-  const headers = ['ID', 'Tipo', 'Estrutura', 'Técnico', 'Supervisor', 'Prioridade', 'Status', 'Prazo', 'Data de Criação'];
+  const headers = ['ID', 'Número da Ordem', 'Tipo', 'Estrutura', 'Técnico', 'Supervisor', 'Prioridade', 'Status', 'Prazo', 'Data de Criação'];
   const rows = data.serviceOrders.map(order => [
     order.id,
+    order.manualOrderNumber || '',
     order.type,
     order.structureId,
     order.technicianId,
@@ -251,6 +253,54 @@ export function downloadFile(content: string, filename: string, type: 'json' | '
   URL.revokeObjectURL(url);
   
   console.log(`✅ Arquivo baixado: ${filename}`);
+}
+
+export function downloadBlobFile(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  console.log(`✅ Arquivo baixado: ${filename}`);
+}
+
+export function exportServiceOrdersAsExcel(data: AppData): Blob {
+  const workbook = XLSX.utils.book_new();
+  const orderRows = [
+    [
+      'ID',
+      'Número da Ordem',
+      'Tipo',
+      'Estrutura',
+      'Técnico',
+      'Supervisor',
+      'Prioridade',
+      'Status',
+      'Prazo',
+      'Data de Criação',
+      'Data de Conclusão'
+    ],
+    ...data.serviceOrders.map((order) => [
+      order.id,
+      order.manualOrderNumber || '',
+      order.type === 'inspecao' ? 'Inspeção' : 'Execução',
+      order.structureId,
+      order.technicianId,
+      order.supervisorId,
+      order.priority === 'alta' ? 'Alta' : order.priority === 'media' ? 'Média' : 'Baixa',
+      order.status,
+      order.deadline,
+      order.createdAt || '',
+      order.completedAt || ''
+    ]),
+  ];
+  const worksheet = XLSX.utils.aoa_to_sheet(orderRows);
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Ordens de Serviço');
+  const workbookBinary = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  return new Blob([workbookBinary], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
 /**

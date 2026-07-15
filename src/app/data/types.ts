@@ -177,6 +177,7 @@ export type Priority = 'alta' | 'media' | 'baixa';
 
 export interface ServiceOrder {
   id: string;
+  manualOrderNumber?: string;    // Número de OS informado pelo supervisor
   type: OrderType;
   structureId: string;           // FK → Structure.id
   technicianId: string;          // FK → SystemUser.id

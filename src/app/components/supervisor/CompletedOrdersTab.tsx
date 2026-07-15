@@ -18,6 +18,7 @@ import {
 import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
+import { ImageViewerModal } from '../ImageViewerModal';
 import type { ServiceOrder, Structure } from '../../data/types';
 import newLogo from '../../../imports/Firefly_Gemini_Flash_recrie_a_imagem_com_qualidade_melhor__331567-1.png';
 
@@ -398,6 +399,10 @@ export function CompletedOrdersTab({
   const [showFilters, setShowFilters] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
 
+  // Image viewer modal
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewingImage, setViewingImage] = useState<{ url: string; anomalyName: string } | null>(null);
+
   const completedOrders = useMemo(
     () => orders.filter((o) => o.status === 'concluido'),
     [orders]
@@ -598,7 +603,27 @@ export function CompletedOrdersTab({
                                 <div className="text-[10px] text-gray-500 mt-1">{a.observation}</div>
                               )}
                               {a.photo && (
-                                <img src={a.photo} alt="Foto anomalia" className="mt-2 w-full h-28 object-cover rounded" />
+                                <button
+                                  onClick={() => {
+                                    setViewingImage({
+                                      url: a.photo!,
+                                      anomalyName: a.anomalyName,
+                                    });
+                                    setShowImageViewer(true);
+                                  }}
+                                  className="mt-2 group relative"
+                                >
+                                  <img
+                                    src={a.photo}
+                                    alt="Foto anomalia"
+                                    className="w-full h-28 object-cover rounded border-2 border-red-100 group-hover:border-red-300 transition-all cursor-pointer"
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded transition-all flex items-center justify-center">
+                                    <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                      📸 Ver Foto
+                                    </span>
+                                  </div>
+                                </button>
                               )}
                             </div>
                           </div>
@@ -710,6 +735,18 @@ export function CompletedOrdersTab({
 
   return (
     <div className="p-4 space-y-3 max-w-3xl mx-auto">
+      {/* Image viewer modal */}
+      <ImageViewerModal
+        isOpen={showImageViewer}
+        imageUrl={viewingImage?.url || ''}
+        anomalyName={viewingImage?.anomalyName}
+        title="Evidência Fotográfica - Anomalia"
+        onClose={() => {
+          setShowImageViewer(false);
+          setViewingImage(null);
+        }}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
