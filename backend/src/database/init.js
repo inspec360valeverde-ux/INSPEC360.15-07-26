@@ -234,11 +234,11 @@ export async function initializeDatabase() {
   // DADOS INICIAIS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  // Usuários padrão
+  // Usuários padrão - 3 usuários base com nomes genéricos
   const usuarios = [
-    ['admin@inspec360.com', 'Administrador', 'admin123', 'superadm', 'active'],
-    ['supervisor@inspec360.com', 'Supervisor Valdez', 'sup123', 'supervisor', 'active'],
-    ['tecnico@inspec360.com', 'Técnico Silva', 'tec123', 'tecnico', 'active']
+    ['admin@inspec360.com', 'Administrator', 'admin123', 'superadm', 'active'],
+    ['supervisor@inspec360.com', 'Supervisor', 'sup123', 'supervisor', 'active'],
+    ['tecnico@inspec360.com', 'Technician', 'tec123', 'tecnico', 'active']
   ];
 
   usuarios.forEach((u, i) => {

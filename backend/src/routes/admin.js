@@ -6,10 +6,11 @@ const router = express.Router();
 // Chave de segurança para limpeza de dados
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'inspec360-admin-2026';
 
-const USERS_TO_KEEP = [
-  'ismar.santos@vale-verde.com',
-  'jonson.santos@vale-verde.com',
-  'gustavo.santos@vale-verde.com'
+// Usuários padrão do sistema - nomes genéricos sem informações pessoais
+const DEFAULT_USERS = [
+  { email: 'admin@inspec360.com', name: 'Administrator', password: 'admin123', role: 'superadm' },
+  { email: 'supervisor@inspec360.com', name: 'Supervisor', password: 'sup123', role: 'supervisor' },
+  { email: 'tecnico@inspec360.com', name: 'Technician', password: 'tec123', role: 'tecnico' }
 ];
 
 /**
@@ -47,6 +48,7 @@ router.post('/clean-data', async (req, res) => {
       '"serviceOrders"',
       'executions',
       'structures',
+      'users',  // Deletar TODOS os usuários
       '"componentRules"',
       'state'
     ];
@@ -61,30 +63,35 @@ router.post('/clean-data', async (req, res) => {
     await runSQL('SET session_replication_role = DEFAULT;');
     console.log('✅ Constraints reabilitadas\n');
 
-    // Limpar usuários simulados
-    console.log('👥 Processando usuários...');
-    
-    const placeholders = USERS_TO_KEEP.map((_, i) => `$${i + 1}`).join(',');
-    const deleteResult = await runSQL(
-      `DELETE FROM users WHERE email NOT IN (${placeholders});`,
-      USERS_TO_KEEP
-    );
-    console.log(`  ✓ Usuários simulados deletados: ${deleteResult.changes}`);
+    // Recriar componentes padrão
+    console.log('🔧 Recriando componentes padrão...');
+    const components = [
+      ['isoladores', 'Isoladores', '🔌', 'Isoladores de porcelana ou vidro', JSON.stringify(['Trinca', 'Rachadura', 'Descascamento', 'Contaminação', 'Acúmulo de sujeira'])],
+      ['ferragens', 'Ferragens', '🔩', 'Estrutura metálica e parafusos', JSON.stringify(['Corrosão', 'Soltura', 'Flexão', 'Fissura', 'Oxidação'])],
+      ['cadeias', 'Cadeias de Isoladores', '⛓️', 'Cadeias de isoladores', JSON.stringify(['Emenda', 'Isolador quebrado', 'Ferragem danificada'])],
+      ['para_raios', 'Para-Raios', '⚡', 'Proteção contra raios', JSON.stringify(['Desalinhamento', 'Corrosão', 'Soltura de parafusos'])],
+      ['condutores', 'Condutores', '🔌', 'Fios e cabos condutores', JSON.stringify(['Dano na isolação', 'Corrosão', 'Flecha excessiva', 'Galho sobre condutor'])],
+      ['estrutura', 'Estrutura', '🏗️', 'Estrutura metálica principal', JSON.stringify(['Fissura na solda', 'Corrosão avançada', 'Deformação'])]
+    ];
 
-    // Corrigir roles
-    await runSQL(
-      'UPDATE users SET role = $1 WHERE email = $2',
-      ['tecnico', 'ismar.santos@vale-verde.com']
-    );
-    await runSQL(
-      'UPDATE users SET role = $1 WHERE email = $2',
-      ['supervisor', 'jonson.santos@vale-verde.com']
-    );
-    await runSQL(
-      'UPDATE users SET role = $1 WHERE email = $2',
-      ['superadm', 'gustavo.santos@vale-verde.com']
-    );
-    console.log('  ✓ Roles dos usuários corrigidas\n');
+    for (const component of components) {
+      await runSQL(
+        'INSERT INTO "componentRules" (id, name, icon, description, anomalies) VALUES ($1, $2, $3, $4, $5)',
+        component
+      );
+    }
+    console.log(`  ✓ ${components.length} componentes recriados\n`);
+
+    // Recriar usuários padrão
+    console.log('👥 Recriando usuários padrão...');
+    for (let i = 0; i < DEFAULT_USERS.length; i++) {
+      const u = DEFAULT_USERS[i];
+      await runSQL(
+        'INSERT INTO users (id, email, name, password, role, status, "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [`usr_${i}`, u.email, u.name, u.password, u.role, 'active', new Date().toISOString()]
+      );
+    }
+    console.log(`  ✓ ${DEFAULT_USERS.length} usuários recriados\n`);
 
     // Coletar estatísticas finais
     console.log('📊 ESTATÍSTICAS FINAIS:\n');
@@ -108,14 +115,14 @@ router.post('/clean-data', async (req, res) => {
 
     console.log('✅ LIMPEZA CONCLUÍDA COM SUCESSO!\n');
     console.log('📝 Resumo:');
-    console.log('  • Todos dados simulados foram deletados');
-    console.log('  • Apenas 3 usuários de teste foram mantidos');
-    console.log('  • Estrutura do banco permanece intacta');
+    console.log('  • TODOS dados simulados foram deletados (100% limpeza)');
+    console.log('  • 3 usuários padrão foram recriados com nomes genéricos');
+    console.log('  • Componentes de inspeção foram reestabelecidos');
     console.log('  • Sistema pronto para dados reais\n');
 
     res.json({
       success: true,
-      message: 'Limpeza de dados concluída com sucesso!',
+      message: 'Limpeza completa concluída! Sistema resetado com 3 usuários padrão.',
       stats: stats,
       users: users,
       timestamp: new Date().toISOString()
