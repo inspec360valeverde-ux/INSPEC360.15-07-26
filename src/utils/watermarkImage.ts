@@ -127,12 +127,13 @@ export async function addWatermarkToImage(
 }
 
 /**
- * Adiciona watermark a partir de base64 (para canvas capture)
+ * Adiciona watermark diretamente em um canvas (retorna Canvas com watermark)
+ * Útil para camera ao vivo
  */
 export async function addWatermarkToCanvas(
   canvasImage: HTMLCanvasElement,
   options: WatermarkOptions
-): Promise<Blob> {
+): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -193,7 +194,7 @@ export async function addWatermarkToCanvas(
       drawTextWithStroke(`Data/Hora: ${dateTimeText}`, padding, y);
       y += fontSize * 1.3;
 
-      // Linha 3: Coordenadas GPS
+      // Linha 4: Coordenadas GPS
       if (options.latitude !== undefined && options.longitude !== undefined) {
         const gpsText = `GPS: ${options.latitude.toFixed(5)}, ${options.longitude.toFixed(5)}`;
         drawTextWithStroke(gpsText, padding, y);
@@ -208,17 +209,8 @@ export async function addWatermarkToCanvas(
         drawTextWithStroke(noGpsText, padding, y);
       }
 
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Erro ao converter canvas para blob'));
-          }
-        },
-        'image/jpeg',
-        0.95
-      );
+      // Retorna o canvas com watermark aplicado
+      resolve(canvas);
     };
 
     img.onerror = () => {
