@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Camera, MapPin, Trash2 } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { addWatermarkToImage, addWatermarkToCanvas } from '@/utils/watermarkImage';
 import { CameraWithWatermark } from './CameraWithWatermark';
 
 interface PhotoManagerProps {
@@ -33,30 +32,46 @@ export function PhotoManager({
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+    if (files.length === 0) return;
+
+    const newPhotos = [...photos];
+
     for (const file of files) {
       try {
-        // Adicionar watermark à imagem
-        const blobWithWatermark = await addWatermarkToImage(file, {
-          latitude: location?.latitude,
-          longitude: location?.longitude,
-          accuracy: location?.accuracy,
-          technicianName,
-          componentName,
-          anomalyName
+        // Ler arquivo como data URL
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result as string);
+          r.onerror = reject;
+          r.readAsDataURL(file);
         });
 
-        // Converter blob para base64
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          onPhotosChange([...photos, base64]);
-        };
-        reader.readAsDataURL(blobWithWatermark);
+        // Criar imagem para desenhar no canvas e otimizar tamanho
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+          img.src = dataUrl;
+        });
+
+        const canvas = document.createElement('canvas');
+        const maxW = 1280;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Não foi possível criar canvas');
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.9);
+        newPhotos.push(base64);
       } catch (err) {
         console.error('Erro ao processar arquivo', err);
       }
     }
+
+    // Atualiza todas as fotos de uma vez
+    onPhotosChange(newPhotos);
 
     // Reset input
     e.target.value = '';

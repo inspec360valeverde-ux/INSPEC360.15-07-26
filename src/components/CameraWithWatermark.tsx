@@ -1,7 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Camera, X, CheckCircle2, AlertCircle, Loader } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { addWatermarkToCanvas } from '@/utils/watermarkImage';
 
 interface CameraWithWatermarkProps {
   componentName?: string;
@@ -70,21 +69,13 @@ export function CameraWithWatermark({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      ctx.drawImage(videoRef.current, 0, 0);
+      // Ajusta para garantir tamanho mínimo/compatível
+      canvas.width = videoRef.current.videoWidth || 1280;
+      canvas.height = videoRef.current.videoHeight || 720;
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-      const watermarkedCanvas = await addWatermarkToCanvas(canvas, {
-        latitude: location?.latitude,
-        longitude: location?.longitude,
-        accuracy: location?.accuracy,
-        technicianName,
-        componentName,
-        anomalyName
-      });
-
-      // Converter canvas para data URL (base64) para preview e retorno
-      const dataUrl = watermarkedCanvas.toDataURL('image/jpeg', 0.95);
+      // Sem watermark por enquanto: apenas converte para base64
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
       setPreviewImage(dataUrl);
       stopCamera();
     } catch (err) {
@@ -106,27 +97,21 @@ export function CameraWithWatermark({
       const reader = new FileReader();
       reader.onload = async (e) => {
         const img = new Image();
-        img.onload = async () => {
+        img.onload = () => {
           const canvas = canvasRef.current;
           if (!canvas) return;
 
-          canvas.width = img.width;
-          canvas.height = img.height;
+          // Limitar largura para dispositivos tablet para performance
+          const maxW = 1280;
+          const scale = Math.min(1, maxW / img.width);
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
           const ctx = canvas.getContext('2d');
           if (!ctx) return;
 
-          ctx.drawImage(img, 0, 0);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          const watermarkedCanvas = await addWatermarkToCanvas(canvas, {
-            latitude: location?.latitude,
-            longitude: location?.longitude,
-            accuracy: location?.accuracy,
-            technicianName,
-            componentName,
-            anomalyName
-          });
-
-          const dataUrl = watermarkedCanvas.toDataURL('image/jpeg', 0.95);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
           setPreviewImage(dataUrl);
         };
         img.src = e.target?.result as string;
@@ -138,6 +123,10 @@ export function CameraWithWatermark({
       setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
 
   const confirmPhoto = () => {
     if (previewImage) {
@@ -157,7 +146,7 @@ export function CameraWithWatermark({
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <h3 className="text-sm font-medium" style={{ color: '#193A2A' }}>
-            Capturar Foto com Marca d'água
+            Capturar Foto
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
@@ -205,12 +194,16 @@ export function CameraWithWatermark({
               
               <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="text-xs text-blue-700 space-y-1">
-                  <p className="font-medium">Marca d'água será adicionada:</p>
+                  <p className="font-medium">Informações</p>
                   <ul className="space-y-0.5">
-                    <li>✓ {componentName || 'Componente'}</li>
-                    {anomalyName && <li>✓ {anomalyName}</li>}
-                    <li>✓ Data e Hora</li>
-                    {location && <li>✓ GPS: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</li>}
+                    {technicianName && <li>👷 {technicianName}</li>}
+                    {componentName && <li>🔧 {componentName}</li>}
+                    {anomalyName && <li>⚠️ {anomalyName}</li>}
+                    {location ? (
+                      <li>📍 GPS: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</li>
+                    ) : (
+                      <li>📍 GPS: Não disponível</li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -227,7 +220,7 @@ export function CameraWithWatermark({
               />
               <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-2 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <p className="text-xs text-green-700">Marca d'água adicionada!</p>
+                <p className="text-xs text-green-700">Foto pronta!</p>
               </div>
             </>
           )}
