@@ -17,20 +17,36 @@ export function useVersionInfo() {
       return;
     }
 
-    // Buscar version.json do servidor
-    fetch('/version.json', { cache: 'no-store' })
-      .then(res => res.json())
-      .then((data: VersionInfo) => {
-        setVersionInfo(data);
-        sessionStorage.setItem('appVersionInfo', JSON.stringify(data));
+    // Primeiro tentar a API backend que agrega info (quando presente)
+    fetch('/api/version', { cache: 'no-store' })
+      .then(res => {
+        if (!res.ok) throw new Error('no api');
+        return res.json();
+      })
+      .then((data: any) => {
+        const info: VersionInfo = {
+          version: data.version || '2.2.0',
+          buildDate: data.buildDate || new Date().toISOString(),
+          lastUpdate: data.lastUpdate || ''
+        };
+        setVersionInfo(info);
+        sessionStorage.setItem('appVersionInfo', JSON.stringify(info));
       })
       .catch(() => {
-        // Se falhar, usar valores padrão
-        setVersionInfo({
-          version: '2.2.0',
-          buildDate: new Date().toISOString(),
-          lastUpdate: 'Versão atual'
-        });
+        // Fallback direto ao arquivo estático
+        fetch('/version.json', { cache: 'no-store' })
+          .then(res => res.json())
+          .then((data: VersionInfo) => {
+            setVersionInfo(data);
+            sessionStorage.setItem('appVersionInfo', JSON.stringify(data));
+          })
+          .catch(() => {
+            setVersionInfo({
+              version: '2.2.0',
+              buildDate: new Date().toISOString(),
+              lastUpdate: 'Versão atual'
+            });
+          });
       });
   }, []);
 

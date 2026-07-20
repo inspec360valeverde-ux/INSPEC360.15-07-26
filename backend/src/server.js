@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { execSync } from 'child_process';
 import { initDb, closeDb } from './database/postgres-connection.js';
 import { initializeDatabase } from './database/init-postgres.js';
 import * as queries from './database/queries-postgres.js';
@@ -130,6 +131,41 @@ app.get('/api/diagnostics/connection', async (req, res) => {
       connection: 'failed',
       timestamp: new Date().toISOString()
     });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VERSÃO / BUILD INFO
+// Retorna o conteúdo de public/version.json e, quando possível, a data do último commit git
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/version', (req, res) => {
+  try {
+    const versionPath = path.join(__dirname, '../public/version.json');
+    let data = null;
+    if (fs.existsSync(versionPath)) {
+      data = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+    }
+
+    // Tentar obter último commit via git (se disponível)
+    let gitDate = null;
+    try {
+      const out = execSync('git log -1 --format=%cI', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+      if (out) gitDate = out;
+    } catch (err) {
+      // Ignore - git pode não estar disponível em ambiente de build
+      gitDate = null;
+    }
+
+    const result = {
+      version: data?.version || 'unknown',
+      buildDate: data?.buildDate || gitDate || new Date().toISOString(),
+      lastUpdate: data?.lastUpdate || null,
+      gitDate
+    };
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
