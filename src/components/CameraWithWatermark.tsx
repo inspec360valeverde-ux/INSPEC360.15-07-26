@@ -8,6 +8,10 @@ interface CameraWithWatermarkProps {
   technicianName?: string;
   onPhotoCapture: (base64: string) => void;
   onClose: () => void;
+  /** If provided, opens directly in the given mode */
+  initialMode?: 'choose' | 'camera' | 'gallery';
+  /** When false, hides the initial chooser and goes directly to camera/gallery */
+  showChooser?: boolean;
 }
 
 export function CameraWithWatermark({
@@ -15,13 +19,15 @@ export function CameraWithWatermark({
   anomalyName,
   technicianName,
   onPhotoCapture,
-  onClose
+  onClose,
+  initialMode = 'choose',
+  showChooser = true
 }: CameraWithWatermarkProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [mode, setMode] = useState<'choose' | 'camera' | 'gallery'>('choose');
+  const [mode, setMode] = useState<'choose' | 'camera' | 'gallery'>(initialMode);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,13 +40,21 @@ export function CameraWithWatermark({
     try {
       setError(null);
       setMode('camera');
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
       });
-      
+
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        try {
+          videoRef.current.srcObject = stream;
+          // Ensure autoplay on iOS/modern browsers: muted + playsInline + explicit play()
+          videoRef.current.muted = true;
+          await videoRef.current.play();
+        } catch (playErr) {
+          // Some browsers require a user gesture; ignore play error but stream is attached
+          console.warn('video play() failed:', playErr);
+        }
       }
     } catch (err: any) {
       let msg = 'Erro ao acessar câmera';
@@ -123,6 +137,16 @@ export function CameraWithWatermark({
       setIsProcessing(false);
     }
   };
+
+  // If initialMode asks to open camera, start it on mount
+  useEffect(() => {
+    if (initialMode === 'camera') {
+      // small delay to ensure videoRef is mounted
+      setTimeout(() => {
+        startCamera();
+      }, 50);
+    }
+  }, []);
 
   useEffect(() => {
     return () => stopCamera();

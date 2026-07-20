@@ -178,6 +178,8 @@ export function PhotoManager({
           componentName={componentName}
           anomalyName={anomalyName}
           technicianName={technicianName}
+          initialMode="camera"
+          showChooser={false}
           onPhotoCapture={(base64) => {
             onPhotosChange([...photos, base64]);
             setShowCamera(false);
