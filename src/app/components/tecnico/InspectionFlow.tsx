@@ -10,7 +10,7 @@ import {
 } from '../../data/store';
 import { useState, useRef } from 'react';
 import { ImageViewerModal } from '../ImageViewerModal';
-import { AnomalyPhotoCapture } from '../AnomalyPhotoCapture';
+import { EvidenceCapture } from '../EvidenceCapture';
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
-import { PhotoManager } from '@/components/PhotoManager';
 import type { User } from '../../App';
 
 interface InspectionFlowProps {
@@ -89,11 +88,12 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [viewingImage, setViewingImage] = useState<{ url: string; anomalyName: string } | null>(null);
 
-  // ── Photo capture for anomaly ──
-  const [showPhotoCapture, setShowPhotoCapture] = useState(false);
-  const [capturingPhotoFor, setCapturingPhotoFor] = useState<{
-    name: string;
-    phase: AnomalyPhase | AnomalyPhase[];
+  // ── Evidence capture modal ──
+  const [showEvidenceCapture, setShowEvidenceCapture] = useState(false);
+  const [capturingEvidenceFor, setCapturingEvidenceFor] = useState<{
+    anomalyId: string;
+    componentName: string;
+    anomalyName: string;
   } | null>(null);
 
   // ── Delete confirmation ──
@@ -125,17 +125,8 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
 
   function addAnomaly() {
     if (!addingAnomaly.name) return;
-    // Instead of adding immediately, open photo capture
-    setCapturingPhotoFor({
-      name: addingAnomaly.name,
-      phase: addingAnomaly.phase,
-    });
-    setShowPhotoCapture(true);
-  }
-
-  function handlePhotoCaptureDone(base64: string) {
-    if (!capturingPhotoFor) return;
     
+    // Create the anomaly entry
     const entry: AnomalyEntry = {
       id: generateId(),
       anomalyName: addingAnomaly.name,
@@ -147,9 +138,17 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
       requiresShutdown: addingAnomaly.requiresShutdown,
       isRecurrent: addingAnomaly.isRecurrent,
       observation: addingAnomaly.observation,
-      photo: base64, // 📸 Attach photo to anomaly
     };
     
+    // Open evidence capture for this anomaly
+    setCapturingEvidenceFor({
+      anomalyId: entry.id,
+      componentName: currentComp?.componentName || '',
+      anomalyName: addingAnomaly.name,
+    });
+    setShowEvidenceCapture(true);
+    
+    // Save anomaly without photo first
     const updated = { ...inspData };
     updated.components[currentIdx] = {
       ...currentComp,
@@ -157,10 +156,45 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
       anomalies: [...(currentComp.anomalies || []), entry],
     };
     save(updated);
+    
+    // Reset form
     setAddingAnomaly(defaultAnomaly);
     setShowAnomalyForm(false);
-    setShowPhotoCapture(false);
-    setCapturingPhotoFor(null);
+  }
+
+  function handleEvidenceCaptureDone(payload: {
+    file: Blob;
+    filename: string;
+    metadata: {
+      latitude?: number;
+      longitude?: number;
+      accuracy?: number;
+      timestamp: string;
+    };
+  }) {
+    if (!capturingEvidenceFor) return;
+    
+    // Convert blob to base64
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target?.result as string;
+      
+      // Update the anomaly with the photo
+      const updated = { ...inspData };
+      const comp = { ...currentComp };
+      const anomaly = comp.anomalies.find(a => a.id === capturingEvidenceFor.anomalyId);
+      
+      if (anomaly) {
+        anomaly.photo = base64;
+      }
+      
+      updated.components[currentIdx] = comp;
+      save(updated);
+    };
+    reader.readAsDataURL(payload.file);
+    
+    setShowEvidenceCapture(false);
+    setCapturingEvidenceFor(null);
   }
 
   function removeAnomaly(anomalyId: string) {
@@ -368,13 +402,16 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
         }}
       />
 
-      <AnomalyPhotoCapture
-        isOpen={showPhotoCapture}
-        anomalyName={capturingPhotoFor?.name || ''}
-        onPhotoCapture={handlePhotoCaptureDone}
-        onCancel={() => {
-          setShowPhotoCapture(false);
-          setCapturingPhotoFor(null);
+      <EvidenceCapture
+        isOpen={showEvidenceCapture}
+        technicianName={user.name}
+        componentName={capturingEvidenceFor?.componentName || ''}
+        anomalyName={capturingEvidenceFor?.anomalyName || ''}
+        orderId={order.id}
+        onCaptureComplete={handleEvidenceCaptureDone}
+        onClose={() => {
+          setShowEvidenceCapture(false);
+          setCapturingEvidenceFor(null);
         }}
       />
 
@@ -778,27 +815,6 @@ export function InspectionFlow({ order, user, onBack, onComplete, onPause }: Ins
             )}
           </div>
         )}
-
-        {/* Photo section - Enhanced with Geolocation */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden px-4 py-3">
-          <h3 className="text-sm font-medium mb-3" style={{ color: '#193A2A' }}>
-            Registrar Evidências Fotográficas
-          </h3>
-          <PhotoManager
-            componentId={currentComp?.componentId}
-            componentName={currentComp?.componentName}
-            anomalyId={currentComp?.anomalies?.[0]?.id}
-            anomalyName={currentComp?.anomalies?.[0]?.anomalyName}
-            technicianName={user.name}
-            photos={currentComp?.photos || []}
-            onPhotosChange={(newPhotos) => {
-              const updated = { ...inspData };
-              updated.components[currentIdx] = { ...currentComp, photos: newPhotos };
-              save(updated);
-            }}
-            inspectionId={order.id}
-          />
-        </div>
 
         {/* Notes */}
         <div className="bg-white rounded-xl shadow-sm px-4 py-3">

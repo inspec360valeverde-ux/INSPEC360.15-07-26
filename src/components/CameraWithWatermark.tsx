@@ -74,7 +74,7 @@ export function CameraWithWatermark({
       canvas.height = videoRef.current.videoHeight;
       ctx.drawImage(videoRef.current, 0, 0);
 
-      const blob = await addWatermarkToCanvas(canvas, {
+      const watermarkedCanvas = await addWatermarkToCanvas(canvas, {
         latitude: location?.latitude,
         longitude: location?.longitude,
         accuracy: location?.accuracy,
@@ -83,12 +83,10 @@ export function CameraWithWatermark({
         anomalyName
       });
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewImage(reader.result as string);
-        stopCamera();
-      };
-      reader.readAsDataURL(blob);
+      // Converter canvas para data URL (base64) para preview e retorno
+      const dataUrl = watermarkedCanvas.toDataURL('image/jpeg', 0.95);
+      setPreviewImage(dataUrl);
+      stopCamera();
     } catch (err) {
       setError('Erro ao capturar foto. Tente novamente.');
     } finally {
@@ -119,7 +117,7 @@ export function CameraWithWatermark({
 
           ctx.drawImage(img, 0, 0);
 
-          const blob = await addWatermarkToCanvas(canvas, {
+          const watermarkedCanvas = await addWatermarkToCanvas(canvas, {
             latitude: location?.latitude,
             longitude: location?.longitude,
             accuracy: location?.accuracy,
@@ -128,11 +126,8 @@ export function CameraWithWatermark({
             anomalyName
           });
 
-          const reader2 = new FileReader();
-          reader2.onload = () => {
-            setPreviewImage(reader2.result as string);
-          };
-          reader2.readAsDataURL(blob);
+          const dataUrl = watermarkedCanvas.toDataURL('image/jpeg', 0.95);
+          setPreviewImage(dataUrl);
         };
         img.src = e.target?.result as string;
       };
