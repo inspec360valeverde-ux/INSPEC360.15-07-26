@@ -8,8 +8,8 @@ services:
     plan: free
     repo: https://github.com/inspec360valeverde-ux/INSPEC360.15-07-26.git
     branch: main
-    buildCommand: cd backend && pnpm install --frozen-lockfile || npm install
-    startCommand: cd backend && pnpm start || npm start
+    buildCommand: cd backend && if command -v pnpm >/dev/null 2>&1; then pnpm install --frozen-lockfile; else npm install; fi
+    startCommand: cd backend && if command -v pnpm >/dev/null 2>&1; then pnpm start; else npm start; fi
     region: oregon
     envVars:
       - key: NODE_ENV
@@ -24,7 +24,7 @@ services:
     name: inspec360-frontend
     repo: https://github.com/inspec360valeverde-ux/INSPEC360.15-07-26.git
     branch: main
-    buildCommand: pnpm install --frozen-lockfile || npm install && pnpm build || npm run build
+    buildCommand: if command -v pnpm >/dev/null 2>&1; then pnpm install --frozen-lockfile && pnpm build; else npm install && npm run build; fi
     publish: dist
     region: oregon
 

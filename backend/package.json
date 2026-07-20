@@ -4,6 +4,7 @@
   "description": "Backend for INSPEC360 inspection system",
   "type": "module",
   "main": "src/server.js",
+  "packageManager": "pnpm@latest",
   "engines": {
     "node": ">=20.0.0"
   },
