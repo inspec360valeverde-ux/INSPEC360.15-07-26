@@ -1,39 +1,34 @@
-# Render configuration for INSPEC360 (frontend + backend + DB)
+# Render configuration for INSPEC360
+# This setup uses a single web service that builds the frontend and starts the backend.
 
 services:
-  # Backend service (Node/Express)
   - type: web
-    name: inspec360-backend
+    name: inspec360
     env: node
     plan: free
-    repo: https://github.com/inspec360valeverde-ux/INSPEC360.15-07-26.git
-    branch: main
-    buildCommand: cd backend && if command -v pnpm >/dev/null 2>&1; then pnpm install --frozen-lockfile; else npm install; fi
-    startCommand: cd backend && if command -v pnpm >/dev/null 2>&1; then pnpm start; else npm start; fi
     region: oregon
+    buildCommand: |
+      npm install
+      npm run build
+      npm install --prefix backend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: DATABASE_URL
         fromDatabase:
           name: inspec360-db
           property: connectionString
 
-  # Frontend: static site built with Vite
-  - type: static
-    name: inspec360-frontend
-    repo: https://github.com/inspec360valeverde-ux/INSPEC360.15-07-26.git
-    branch: main
-    buildCommand: if command -v pnpm >/dev/null 2>&1; then pnpm install --frozen-lockfile && pnpm build; else npm install && npm run build; fi
-    publish: dist
-    region: oregon
-
 databases:
   - name: inspec360-db
-    plan: starter
+    plan: free
     engine: postgres
     region: oregon
 
 # Notes:
-# - Adjust `region` values according to your Render account preferences.
-# - If you prefer `npm` instead of `pnpm`, modify the build/start commands accordingly.
+# - After deployment, set the frontend API URL if you split frontend/backend into different domains.
+# - For a single-service deployment, the app uses /api automatically.

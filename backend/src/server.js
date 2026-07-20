@@ -21,17 +21,19 @@ import adminRouter from './routes/admin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((value) => value.trim()).filter(Boolean)
+  : true;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MIDDLEWARE
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -205,7 +207,7 @@ async function startServer() {
 🔍 Teste Conexão: http://localhost:${PORT}/api/diagnostics/connection
 🏞️  Imagens: http://localhost:${PORT}/images/inspections
 ✅ Banco: PostgreSQL (Remoto)
-🔒 CORS: ${CORS_ORIGIN}
+🔒 CORS: ${typeof corsOrigins === 'boolean' ? 'all origins' : corsOrigins.join(', ')}
 
 Rotas da API disponíveis:
   ├─ POST   /api/users              → Criar usuário
