@@ -1,29 +1,43 @@
-// Versionamento: Muda automaticamente para forçar novo cache
-const BUILD_VERSION = '20260601-001'
-const CACHE_NAME = `inspec360-v2-cache-${BUILD_VERSION}`
+// Versionamento: usa /version.json para derivar token de cache
+let BUILD_VERSION = null
+let CACHE_NAME = `inspec360-v2-cache`
 const SYNC_TAG = 'inspec360-sync'
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/src/main.tsx'
+  '/version.json',
+  '/service-worker.js'
 ]
 
 // Install - cache static assets
 self.addEventListener('install', (event) => {
-  console.log(`[SW] Installing version ${BUILD_VERSION}`)
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // Cache essential files, ignore errors for missing files
-      return Promise.all(
-        STATIC_ASSETS.map((url) =>
-          cache.add(url).catch(() => console.log(`Could not cache ${url}`))
-        )
-      )
-    })
-  )
-  self.skipWaiting()
+  // Durante install tentamos obter a versão pública para derivar o nome do cache.
+  event.waitUntil((async () => {
+    try {
+      const res = await fetch('/version.json', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        // Preferir `version`, senão `buildDate`.
+        const token = (data.version || data.buildDate || Date.now()).toString().replace(/[^a-zA-Z0-9]/g, '');
+        BUILD_VERSION = token;
+        CACHE_NAME = `inspec360-v2-cache-${BUILD_VERSION}`;
+      }
+    } catch (e) {
+      // fallback: usar timestamp
+      const token = Date.now().toString();
+      BUILD_VERSION = token;
+      CACHE_NAME = `inspec360-v2-cache-${BUILD_VERSION}`;
+    }
+
+    console.log(`[SW] Installing version ${BUILD_VERSION}`)
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.all(
+      STATIC_ASSETS.map((url) => cache.add(url).catch(() => console.log(`Could not cache ${url}`)))
+    );
+    self.skipWaiting();
+  })())
 })
 
 // Activate - clean old caches
@@ -32,7 +46,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          // Deletar caches antigos que usam o prefixo
+          if (cacheName.startsWith('inspec360-v2-cache') && cacheName !== CACHE_NAME) {
             return caches.delete(cacheName)
           }
         })
