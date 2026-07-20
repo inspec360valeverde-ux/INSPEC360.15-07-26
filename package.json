@@ -10,7 +10,9 @@
   "scripts": {
     "prebuild": "node scripts/update-version.js",
     "build": "vite build",
-    "dev": "vite"
+    "build:render": "npm install && npm run build && npm install --prefix backend",
+    "dev": "vite",
+    "start:backend": "npm start --prefix backend"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
