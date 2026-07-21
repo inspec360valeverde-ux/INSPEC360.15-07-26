@@ -18,7 +18,9 @@ export function useVersionInfo() {
     }
 
     // Primeiro tentar a API backend que agrega info (quando presente)
-    fetch('/api/version', { cache: 'no-store' })
+    // IMPORTANTE: Forçar sem cache adicionando timestamp
+    const timestamp = new Date().getTime();
+    fetch(`/api/version?ts=${timestamp}`, { cache: 'no-store' })
       .then(res => {
         if (!res.ok) throw new Error('no api');
         return res.json();
@@ -33,8 +35,8 @@ export function useVersionInfo() {
         sessionStorage.setItem('appVersionInfo', JSON.stringify(info));
       })
       .catch(() => {
-        // Fallback direto ao arquivo estático
-        fetch('/version.json', { cache: 'no-store' })
+        // Fallback direto ao arquivo estático com timestamp para evitar cache
+        fetch(`/version.json?ts=${timestamp}`, { cache: 'no-store' })
           .then(res => res.json())
           .then((data: VersionInfo) => {
             setVersionInfo(data);

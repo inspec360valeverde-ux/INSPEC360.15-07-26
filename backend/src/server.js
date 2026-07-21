@@ -38,6 +38,29 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HEADERS DE CACHE - Evitar cache agressivo de arquivos críticos
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.use((req, res, next) => {
+  // Arquivos críticos que NUNCA devem ser cacheados
+  if (req.path.match(/\/(index\.html|service-worker\.js|version\.json|manifest\.json)$/)) {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate, public, max-age=0');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  // Assets com hash podem ser cacheados por muito tempo
+  else if (req.path.match(/\.(js|css|jpg|png|gif|woff|woff2)$/)) {
+    res.set('Cache-Control', 'public, max-age=31536000'); // 1 ano
+  }
+  // API routes nunca devem ser cacheadas
+  else if (req.path.startsWith('/api/')) {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  
+  next();
+});
+
 // Servir arquivos estáticos do public
 app.use(express.static(path.join(__dirname, '../public')));
 
