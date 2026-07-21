@@ -227,8 +227,8 @@ Rotas da API disponíveis:
 Pressione Ctrl+C para parar
 
 Variáveis de ambiente:
-  - PORT: ${PORT}
-  - CORS_ORIGIN: ${CORS_ORIGIN}
+  - PORT: ${process.env.PORT}
+  - CORS_ORIGIN: ${process.env.CORS_ORIGIN}
   - DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Configurada' : '❌ NÃO CONFIGURADA'}
       `);
     });
