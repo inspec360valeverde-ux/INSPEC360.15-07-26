@@ -10,7 +10,7 @@
   "scripts": {
     "prebuild": "node scripts/update-version.js",
     "build": "vite build",
-    "build:render": "pnpm install && pnpm run build && pnpm install --prefix backend",
+    "build:render": "node scripts/update-version.js && pnpm install && pnpm run build && pnpm install --prefix backend",
     "dev": "vite",
     "start:backend": "pnpm start --prefix backend"
   },
