@@ -88,6 +88,34 @@ if (fs.existsSync(distPath)) {
 // ROTAS DA API
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Debug endpoint para diagnosticar problema de build
+app.get('/api/debug/build-info', (req, res) => {
+  const distExists = fs.existsSync(distPath);
+  const distFiles = distExists ? fs.readdirSync(distPath) : [];
+  const distIndexExists = distExists ? fs.existsSync(path.join(distPath, 'index.html')) : false;
+  
+  const versionFile = path.join(__dirname, '../public/version.json');
+  let versionData = null;
+  try {
+    versionData = JSON.parse(fs.readFileSync(versionFile, 'utf8'));
+  } catch (e) {
+    versionData = { error: e.message };
+  }
+  
+  res.json({
+    timestamp: new Date().toISOString(),
+    distPath: distPath,
+    distExists: distExists,
+    distFiles: distFiles,
+    distIndexExists: distIndexExists,
+    distSize: distExists ? fs.statSync(distPath).size : 0,
+    version: versionData,
+    nodeEnv: process.env.NODE_ENV,
+    port: process.env.PORT,
+    uptime: process.uptime()
+  });
+});
+
 app.use('/api/users', usersRouter);
 app.use('/api/structures', structuresRouter);
 app.use('/api/components', componentsRouter);

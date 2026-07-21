@@ -172,6 +172,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <p className="text-center text-white/25 text-[9px] mt-3">
           © 2026 INSPEC360 · Mineração Vale Verde
         </p>
+        
+        {/* BUILD TIMESTAMP - DEBUG */}
+        <div className="mt-4 pt-3 border-t border-white/20 text-center">
+          <p className="text-xs text-red-400 font-bold">
+            BUILD TIMESTAMP: {new Date().toISOString()}
+          </p>
+        </div>
       </div>
     </div>
   );
