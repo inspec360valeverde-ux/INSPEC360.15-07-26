@@ -1,6 +1,6 @@
 {
-  "version": "2.1.20260721003",
-  "buildDate": "2026-07-21T16:30:00Z",
-  "features": ["camera-fix", "gallery-fallback", "period-sync", "multi-device-sync", "multi-structure-orders", "version-tracking", "cache-fix", "build-debug"],
-  "lastUpdate": "Debug: Endpoint /api/debug/build-info e timestamp visível"
+  "version": "2.1.20260721999",
+  "buildDate": "2026-07-21T20:00:00Z",
+  "features": ["docker-build", "complete-rebuild", "zero-cache"],
+  "lastUpdate": "DOCKERFILE DEPLOYMENT - Build from zero com Dockerfile personalizado"
 }

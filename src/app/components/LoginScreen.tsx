@@ -78,8 +78,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
             {/* Title */}
             <div className="text-center mb-6">
-              <h1 style={{ color: '#193A2A' }} className="text-lg">🔧 SISTEMA TESTE - Build Atualizado</h1>
-              <p className="text-xs text-gray-500 mt-1">LT 230kV – Gestão de Estruturas</p>
+              <h1 style={{ color: '#193A2A', fontSize: '28px', fontWeight: 'bold' }}>
+                ✅ DOCKER BUILD ATIVO
+              </h1>
+              <p className="text-xs text-gray-500 mt-1">LT 230kV – Gestão de Estruturas (Build Date: {new Date().toISOString()})</p>
             </div>
 
             {/* Login Form */}
@@ -172,13 +174,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <p className="text-center text-white/25 text-[9px] mt-3">
           © 2026 INSPEC360 · Mineração Vale Verde
         </p>
-        
-        {/* BUILD TIMESTAMP - DEBUG */}
-        <div className="mt-4 pt-3 border-t border-white/20 text-center">
-          <p className="text-xs text-red-400 font-bold">
-            BUILD TIMESTAMP: {new Date().toISOString()}
-          </p>
-        </div>
       </div>
     </div>
   );

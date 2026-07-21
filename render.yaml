@@ -1,15 +1,14 @@
 # Render configuration for INSPEC360
-# This setup uses a single web service that builds the frontend and starts the backend.
+# Usando Dockerfile customizado para controle total do build
 
 services:
   - type: web
     name: inspec360
-    env: node
+    env: docker
     plan: free
     region: oregon
-    buildCommand: |
-      bash render-build.sh
-    startCommand: pnpm run start:backend
+    dockerfile: ./Dockerfile
+    dockerCommand: node backend/src/server.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -28,7 +27,3 @@ databases:
     plan: free
     engine: postgres
     region: oregon
-
-# Notes:
-# - After deployment, set the frontend API URL if you split frontend/backend into different domains.
-# - For a single-service deployment, the app uses /api automatically.
