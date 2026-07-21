@@ -19,6 +19,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('');
   const versionInfo = useVersionInfo();
 
+  // Debug: log version info no console
+  React.useEffect(() => {
+    if (versionInfo) {
+      console.log('[LoginScreen] Version Info:', versionInfo);
+    }
+  }, [versionInfo]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

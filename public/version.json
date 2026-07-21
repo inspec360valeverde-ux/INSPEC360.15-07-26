@@ -1,6 +1,6 @@
 {
-  "version": "2.1.20260721001",
-  "buildDate": "2026-07-21T10:10:00Z",
-  "features": ["camera-fix", "gallery-fallback", "period-sync", "multi-device-sync", "multi-structure-orders", "version-tracking"],
-  "lastUpdate": "Atualização com rastreamento de data/hora e correções de deploy"
+  "version": "2.1.20260721002",
+  "buildDate": "2026-07-21T16:25:00Z",
+  "features": ["camera-fix", "gallery-fallback", "period-sync", "multi-device-sync", "multi-structure-orders", "version-tracking", "cache-fix"],
+  "lastUpdate": "Fix: headers de cache corretos e badge de atualização visível"
 }
