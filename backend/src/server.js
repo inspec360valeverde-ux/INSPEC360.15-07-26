@@ -66,8 +66,22 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Servir frontend estático (build do Vite)
 const distPath = path.join(__dirname, '../../dist');
+console.log(`[Server] Verificando dist em: ${distPath}`);
+console.log(`[Server] Dist existe? ${fs.existsSync(distPath)}`);
+
 if (fs.existsSync(distPath)) {
+  console.log(`[Server] ✅ Servindo arquivos estáticos do dist`);
   app.use(express.static(distPath));
+  
+  // Fallback para SPA: redirecionar rotas desconhecidas para index.html
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(distPath, 'index.html'));
+    }
+  });
+} else {
+  console.warn(`[Server] ⚠️  AVISO: Diretório dist não encontrado em ${distPath}`);
+  console.warn(`[Server] Listando diretório raiz:`, fs.readdirSync(path.join(__dirname, '../../')));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

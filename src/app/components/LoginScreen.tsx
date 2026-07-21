@@ -78,7 +78,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
             {/* Title */}
             <div className="text-center mb-6">
-              <h1 style={{ color: '#193A2A' }} className="text-lg">Sistema de Inspeções</h1>
+              <h1 style={{ color: '#193A2A' }} className="text-lg">🔧 SISTEMA TESTE - Build Atualizado</h1>
               <p className="text-xs text-gray-500 mt-1">LT 230kV – Gestão de Estruturas</p>
             </div>
 

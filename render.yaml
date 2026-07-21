@@ -8,7 +8,7 @@ services:
     plan: free
     region: oregon
     buildCommand: |
-      pnpm run build:render
+      bash render-build.sh
     startCommand: pnpm run start:backend
     healthCheckPath: /api/health
     envVars:
