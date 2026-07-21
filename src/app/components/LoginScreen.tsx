@@ -55,7 +55,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       <div className="relative z-10 mb-4 flex items-center gap-2 px-4 py-2 rounded-full text-xs"
         style={{ backgroundColor: 'rgba(170,137,51,0.15)', border: '1px solid rgba(170,137,51,0.3)', color: '#AA8933' }}>
         <ShieldCheck className="w-3.5 h-3.5" />
-        <span>Produto gerenciado pela <strong>Mineração Vale Verde</strong></span>
+        <span>✅ ATUALIZADO EM 21/07/2026 - Sistema ao vivo</span>
       </div>
 
       <div className="relative w-full max-w-sm px-6">
