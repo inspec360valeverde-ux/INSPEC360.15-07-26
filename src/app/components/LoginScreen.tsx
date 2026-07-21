@@ -149,17 +149,22 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           </div>
         </div>
 
-        {/* Bottom watermark */}
-        <p className="text-center text-white/30 text-[10px] mt-4">
-          © 2026 INSPEC360 · Mineração Vale Verde · v{versionInfo?.version || '2.2.0'}
-        </p>
-        
-        {/* Last update info */}
+        {/* Last update info - HIGHLIGHT */}
         {versionInfo && (
-          <p className="text-center text-white/40 text-[9px] mt-1.5">
-            ⏱️ Última atualização: {formatUpdateTime(versionInfo.buildDate)}
-          </p>
+          <div className="mt-6 pt-4 border-t border-white/20">
+            <p className="text-center text-white/60 text-[11px] font-medium">
+              📦 Versão: v{versionInfo?.version || '2.2.0'}
+            </p>
+            <p className="text-center text-[#AA8933] text-[12px] font-semibold mt-2 bg-white/5 rounded px-3 py-2">
+              🕐 Última atualização:{'\n'}{formatUpdateTime(versionInfo.buildDate)}
+            </p>
+          </div>
         )}
+
+        {/* Bottom watermark */}
+        <p className="text-center text-white/25 text-[9px] mt-3">
+          © 2026 INSPEC360 · Mineração Vale Verde
+        </p>
       </div>
     </div>
   );
