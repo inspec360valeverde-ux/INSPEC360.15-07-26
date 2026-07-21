@@ -116,8 +116,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
               <Button
                 type="submit"
-                className="w-full text-white"
-                style={{ backgroundColor: '#AA8933' }}
+                className="w-full text-white font-bold text-lg"
+                style={{ backgroundColor: '#22C55E' }}
                 disabled={loading}
               >
                 {loading ? (
